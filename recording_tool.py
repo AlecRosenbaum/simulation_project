@@ -1,6 +1,12 @@
 """used in recording data (python 3)
 
 usage: python recording_tool.py
+
+It will ask for a file name. If the file exists, entries will be appended,
+otherwise a new file will be made.
+
+The csv will be have the data in the following format:
+    person_#,time_of_entry_into_queue
 """
 
 import os.path
