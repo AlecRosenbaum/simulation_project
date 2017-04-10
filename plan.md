@@ -4,7 +4,7 @@ Note: This is a living document, please update with skeletons as changes are mad
     - Elevator
         + base elevator, abstract
     - BasicElevator
-    - <insert elevator here>
+    - \<insert elevator here\>
     - ...
 * building.py
 	- class Building
