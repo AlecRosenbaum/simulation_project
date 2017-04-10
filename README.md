@@ -37,52 +37,54 @@ Answers to these questions may be interesting, but finding a good solution will 
 ## Acquiring Data
 
 We e-mailed the area coordinator for facilities management in the Cathedral of Learning, to ask for access to any logged elevator data. Thus, if we get this data, we will not need so much manual collection of data, and we can address our problems within different buildings.
+
 We also found data about the design standards from the facilities management along with their standards for elevator operation (wait times, speed, etc). We will be able to use this within validation.
+
 We will base our traffic generation on when students have classes. We will build in a slight overhead for other people in the building, but will make a few simplifying assumptions regarding inter-floor travel within the building.
 Assumptions:
-Students will arrive at the building according to some distribution (tbd) before class starts
-Students will leave the building according to some distribution (tbd) after class ends
-Student primarily constitute elevator traffic.
-(Benedum Specific) People enter the building from the Ground/First floor in some consistent ratio.
+
+* Students will arrive at the building according to some distribution (tbd) before class starts
+* Students will leave the building according to some distribution (tbd) after class ends
+* Student primarily constitute elevator traffic.
+* People enter the building from the Ground/First floor in some consistent ratio.
+
 We will gather data in order to estimate this ratio.
-The data for these estimations will come from the class registrar within peoplesoft, or if we can’t access that we’ll use data from the courses.as.pitt.edu website.
-Alec has a contact that can provide a .csv file of all the class information (all courses offered at Pitt with buildings, rooms, times, days, etc)
+
+The data for these estimations will come from the class registrar within peoplesoft (data in shared drive).
+
 ## Model Components
 
-Queues for individual floors
-Disorderly, more aggressive people push their way ahead in the queue
-People are generated with randomized aggression levels
-Elevators with various algorithms
-States/Configuration:
-Max capacity
-Current Capacity
-Current Floor
-Floor Range
-Global Future event queue (Priority queue)
-Global Configuration Parameters
-Elevator Travel Speed (Specified in Facilities Management Standards)
-Walking Speed (for stairs, if necessary for simulation)
-Validation
-How will you check to see if your model is functioning as expected?
-Sanity Checks
-People in vs People Out
-Elevator Utilization
-Basic Checks on statistics for wait times 
-Range, average, stdev, median, etc
-No starvation (person never gets off, person waits infinitely, etc.)
-Checks against standardized design guidelines
-Specified by Pitt facilities management, will be applicable for Pitt’s buildings
-Any significant deviations will be investigated
+* Queues for individual floors
+    - Disorderly, more aggressive people push their way ahead in the queue
+    - People are generated with randomized aggression levels
+* Elevators with various algorithms
+* States/Configuration:
+    - Max capacity
+    - Current Capacity
+    - Current Floor
+    - Floor Range
+* Global Future event queue (Priority queue)
+* Global Configuration Parameters
+    - Elevator Travel Speed (Specified in Facilities Management Standards)
+    - Walking Speed (for stairs, if necessary for simulation)
+* Validation - How will you check to see if your model is functioning as expected?
+    - Sanity Checks
+    - People in vs People Out
+    - Elevator Utilization
+    - Basic Checks on statistics for wait times 
+        + Range, average, stdev, median, etc
+    - No starvation (person never gets off, person waits infinitely, etc.)
+    - Checks against standardized design guidelines (specified by Pitt facilities management) applicable for Pitt’s buildings
+        + Any significant deviations will be investigated
 
 
-
 # Experimental Design
 
-Which elevator algorithm is most efficient (: lowest average time for a unique person to get through the system)?
+1. Which elevator algorithm is most efficient (lowest average time for a unique person to get through the system)?
 
 To evaluate this question, we will run a simulation of a week in Benedum under our different elevator routing algorithms multiple times.  We will initially try for 25 times, then see if the computing time allows for a greater number of trials.  For each trial, we will export to a csv file the time it took each user to move through the system and their initial wait time for an elevator.  No other data about the the trials will be required for analysis.  In a separate script, we will read the csv files back in and compute the averagefor each algorithm.  The algorithm with the lowest will be deemed most efficient and used as the baseline for subsequent problems.
 
-	In order to assess the validity of our algorithms, we will run several one-day trials where we track users movements through the system, ensuring that nobody is stranded on the elevator, that people travel to the correct destination, that weight limits are not exceeded and that there are no outliers with excessive wait times.  We will also compare our accepted most-efficient algorithm against the facilities management minimum standards; that the average wait time for an elevator on lobby floors is 0-20 seconds, that 80% or more wait times are within that range and that less than 2% of wait times are greater than 26.6 seconds.  We will also compare those numbers to data collected at the elevator lobbies to ensure these numbers are reasonable.
+In order to assess the validity of our algorithms, we will run several one-day trials where we track users movements through the system, ensuring that nobody is stranded on the elevator, that people travel to the correct destination, that weight limits are not exceeded and that there are no outliers with excessive wait times.  We will also compare our accepted most-efficient algorithm against the facilities management minimum standards; that the average wait time for an elevator on lobby floors is 0-20 seconds, that 80% or more wait times are within that range and that less than 2% of wait times are greater than 26.6 seconds.  We will also compare those numbers to data collected at the elevator lobbies to ensure these numbers are reasonable.
 
 2. How many (what range of) floors does a person need to travel in order for using the elevator to take less time than the stairs?
 
@@ -102,23 +104,24 @@ To evaluate this problem, we will model a single day in Benedum using our most e
 # Work Plan
 an initial assignment of who will do what by when. It’s fine if your work plan changes later on, depending on progress (Project end date is 4/29).
 
-3/22 - Finish proposal
-3/28 - Finishing physical data collection
-9:30-10:30 Lauren, Alec, Data collection Benedum
-1:00-2:00PM - Terry and Cory collection Benedum
-Walking Stairs timing (any)
-4/4 - Finish building components of simulation 
-Elevator
-Person
-Floor Queues
-FEL
-Unit Testing - PyUnit
-4/11 - Elevator Algorithms Implemented, run experiments
-4/18 - Write Code to Analyze Experimental Results, re-run experiments if necessary
-4/25 - Report Written and Checked
-4/29 - Project due (Presentation) (Profit)
-
-References/Useful Resources
+* 3/22 - Finish proposal
+* 3/28 - Finishing physical data collection
+    - 9:30-10:30 Lauren, Alec, Data collection Benedum
+    - 1:00-2:00PM - Terry and Cory collection Benedum
+    - Walking Stairs timing (any)
+* 4/4 - Finish building components of simulation 
+    - Elevator
+    - Person
+    - Floor Queues
+    - FEL
+    - Unit Testing - PyUnit
+* 4/11 - Elevator Algorithms Implemented, run experiments
+* 4/18 - Write Code to Analyze Experimental Results, re-run experiments if * necessary
+* 4/25 - Report Written and Checked
+* 4/29 - Project due (Presentation) (Profit)
+
+
+# References/Useful Resources
 http://www.facmgmt.pitt.edu/designm/DIVISION-H.pdf
 http://www.tinyepiphany.com/2009/12/elevator-algorithms.html
 http://www.columbia.edu/~cs2035/courses/ieor4405.S13/p14.pdf
