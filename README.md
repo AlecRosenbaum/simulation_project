@@ -104,6 +104,8 @@ To evaluate this problem, we will model a single day in Benedum using our most e
 # Work Plan
 an initial assignment of who will do what by when. It’s fine if your work plan changes later on, depending on progress (Project end date is 4/29).
 
+see program structure in the [plan](plan.md)
+
 * 3/22 - Finish proposal
 * 3/28 - Finishing physical data collection
     - 9:30-10:30 Lauren, Alec, Data collection Benedum
@@ -113,13 +115,12 @@ an initial assignment of who will do what by when. It’s fine if your work plan
     - Elevator
     - Person
     - Floor Queues
-    - FEL
+    - FEQ
     - Unit Testing - PyUnit
 * 4/11 - Elevator Algorithms Implemented, run experiments
 * 4/18 - Write Code to Analyze Experimental Results, re-run experiments if* necessary
 * 4/25 - Report Written and Checked
 * 4/29 - Project due (Presentation) (Profit)
-
 
 # References/Useful Resources
 
