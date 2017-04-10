@@ -8,7 +8,7 @@ We will model the elevators in Benedum during class time. This problem is intere
 
 ## Core Questions
 
-1. Which elevator algorithm is most efficient (: lowest average time for a unique person to get through the system)?
+1. Which elevator algorithm is most efficient (lowest average time for a unique person to get through the system)?
    Motivation: Important building block for problems that apply elevator wait times to other questions 
    Note: we will implement some common heuristics, as well as try to come up with our own versions if we have time
    
@@ -116,13 +116,14 @@ an initial assignment of who will do what by when. It’s fine if your work plan
     - FEL
     - Unit Testing - PyUnit
 * 4/11 - Elevator Algorithms Implemented, run experiments
-* 4/18 - Write Code to Analyze Experimental Results, re-run experiments if * necessary
+* 4/18 - Write Code to Analyze Experimental Results, re-run experiments if* necessary
 * 4/25 - Report Written and Checked
 * 4/29 - Project due (Presentation) (Profit)
 
 
 # References/Useful Resources
-http://www.facmgmt.pitt.edu/designm/DIVISION-H.pdf
-http://www.tinyepiphany.com/2009/12/elevator-algorithms.html
-http://www.columbia.edu/~cs2035/courses/ieor4405.S13/p14.pdf
+
+* http://www.facmgmt.pitt.edu/designm/DIVISION-H.pdf
+* http://www.tinyepiphany.com/2009/12/elevator-algorithms.html
+* http://www.columbia.edu/~cs2035/courses/ieor4405.S13/p14.pdf
 
