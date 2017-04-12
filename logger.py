@@ -60,7 +60,7 @@ class PersonLogger(Logger):
                                STATE TEXT,
                                ELEVATOR_ID INT,
                                ELEVATOR_STATE TEXT
-                            );"""
+                            )"""
 
     INSERT_STMT = """
                     INSERT INTO PERSON_LOGS (
@@ -70,19 +70,18 @@ class PersonLogger(Logger):
                         STATE,
                         ELEVATOR_ID,
                         ELEVATOR_STATE)
-                    VALUES ({}, {}, {}, '{}', {}, '{}');"""
+                    VALUES ({}, {}, {}, '{}', {}, '{}')"""
 
     SELECT_ALL_STMT = """
-                    SELECT
-                        PERSON_ID,
-                        EVENT_DAY,
-                        EVENT_TIME,
-                        STATE,
-                        ELEVATOR_ID,
-                        ELEVATOR_STATE
-                    FROM
-                        PERSON_LOGS
-    """
+                        SELECT
+                            PERSON_ID,
+                            EVENT_DAY,
+                            EVENT_TIME,
+                            STATE,
+                            ELEVATOR_ID,
+                            ELEVATOR_STATE
+                        FROM
+                            PERSON_LOGS"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
