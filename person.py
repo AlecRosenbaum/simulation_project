@@ -53,7 +53,9 @@ class Person:
         self.state = state
 
     def __str__(self):
-        return "{} -> {}".format(self.origin.name)
+        return "{} -> {}".format(self.origin.name, self.destination.name)
+
+    __repr__ = __str__
 
 class ArrivalGenerator:
     """models floor arrivals based on source data (can save/load data)"""
@@ -83,6 +85,10 @@ class ArrivalGenerator:
 
             # if class isn't scheduled for a day we care about, skip
             if len(days & set(i['days'])) == 0:
+                continue
+
+            # if class is on G or 1, no elevator trip required
+            if i['floor'] == 'G' or i['floor'] == '1':
                 continue
 
             # generate elevator arrivals from class
@@ -115,7 +121,10 @@ class ArrivalGenerator:
         """
         ret = []
         for rand_time in np.random.chisquare(df=4, size=num):
-            origin = self._building.floor['G']
+            if np.random.random_sample() < settings.G_ENTRY_PCT:
+                origin = self._building.floor['G']
+            else:
+                origin = self._building.floor['1']
             dest = self._building.floor[floor]
             elevator_arrival_time = time - rand_time
             ret.append((elevator_arrival_time, Person(self._person_logger, origin, dest)))
@@ -138,7 +147,10 @@ class ArrivalGenerator:
         ret = []
         for rand_time in np.random.chisquare(df=1, size=num):
             origin = self._building.floor[floor]
-            dest = self._building.floor['G']
+            if np.random.random_sample() < settings.G_ENTRY_PCT:
+                dest = self._building.floor['G']
+            else:
+                dest = self._building.floor['1']
             elevator_arrival_time = time + rand_time
             ret.append((elevator_arrival_time, Person(self._person_logger, origin, dest)))
 

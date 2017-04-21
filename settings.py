@@ -4,6 +4,7 @@ from os import path
 
 # configuration constants
 DEFAULT_CAPACITY = 20
+G_ENTRY_PCT = .6
 
 # log filename
 PERSON_LOG_FNAME = "person.sqlite3"
