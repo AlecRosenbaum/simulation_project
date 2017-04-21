@@ -2,8 +2,16 @@
 
 class Building:
     """models the building"""
-    pass
+
+    def __init__(self, floors):
+        self.floor = {}
+        for i in floors:
+            self.floor[i] = Floor(i)
+
 
 class Floor:
     """models each floor of a building"""
-    pass
+
+    def __init__(self, name):
+        self.name = name
+    
