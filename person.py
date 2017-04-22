@@ -60,7 +60,7 @@ class Person:
 class ArrivalGenerator:
     """models floor arrivals based on source data (can save/load data)"""
 
-    def __init__(self, building, person_logger, file_path, days=['M']):
+    def __init__(self, building, person_logger, file_path, days=None):
         """ArrivalGenerator Contstructor
 
         initializes reader, generates all arrivals and departures as person objects
@@ -74,12 +74,13 @@ class ArrivalGenerator:
                   scheduled for monday or wednesday). Defaults to Monday.
         """
         # init instance variables
+        if days is None:
+            days = set(['M'])
         self.arrival_times = []
         self._person_logger = person_logger
         self._building = building
 
         # read csv
-        days = set(days)
         for i in ArrivalGenerator.parse_csv(file_path):
             # for each class, generate arrivals and departures
 
