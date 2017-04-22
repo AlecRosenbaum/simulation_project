@@ -23,3 +23,4 @@ VERBOSE = True
 FEQ = PriorityQueue()
 CURR_DAY = 0 # current day
 ELEVATORS = []
+BUILDING = None
