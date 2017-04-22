@@ -26,7 +26,7 @@ Note: This is a living document, please update with skeletons as changes are mad
 * tests.py 
     - (however pyunit works?)
 * main.py
-    - runs simulation, it creates arrivals andruns the elevator until the FEQ is empty
+    - runs simulation, it creates arrivals and runs the elevator until the FEQ is empty
     - does not call stats when finished
 * stats.py 
     - (all statistics processing on database + outputs graphs to folder)
