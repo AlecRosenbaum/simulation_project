@@ -58,32 +58,83 @@ class Person:
     __repr__ = __str__
 
 class ArrivalGenerator:
-    """models floor arrivals based on source data (can save/load data)"""
+    """models floor arrivals based on source data (can save/load data)
 
-    def __init__(self, building, person_logger, file_path, days=None):
+    Usage:
+        arr_gen = ArrivalGenerator(building, person_logger)
+        arr_gen.gen_from_classes('class_list.csv')
+        arr_gen.save('saved_arrvals.csv')
+        arr_gen.load('saved_arrvals.csv')
+
+        for i in arr_gen.arrival_times:
+            # add i to queue
+    """
+
+    def __init__(self, building, person_logger):
         """ArrivalGenerator Contstructor
-
-        initializes reader, generates all arrivals and departures as person objects
-
-        Note: each person only makes on journey
 
         Args:
             building: reference to building object arrivals are generated for
-            file_path: path to class schedule file
-            days: list of days being simulated (ex: ['M', 'Tu'] -> generate arrivals if class is
-                  scheduled for monday or wednesday). Defaults to Monday.
+            person_logger: logger to use when creating "person" instances
         """
         # init instance variables
-        if days is None:
-            days = set(['M'])
         self.arrival_times = []
         self._person_logger = person_logger
         self._building = building
 
-        # read csv
-        for i in ArrivalGenerator.parse_csv(file_path):
-            # for each class, generate arrivals and departures
+    def save(self, path):
+        """saves current arrivals to a file
 
+        Note: overwrites whatever is currently at <path>
+
+        Args:
+            path: file to save to
+        """
+        with open(path, 'w') as arr_csv:
+            fields = ['arrival_time', 'origin', 'destination']
+            writer = csv.DictWriter(arr_csv, fieldnames=fields)
+            writer.writeheader()
+            for i in self.arrival_times:
+                writer.writerow({
+                    'arrival_time': i[0],
+                    'origin': i[1].origin.name,
+                    'destination': i[1].destination.name,
+                })
+
+    def load(self, path, replace=True):
+        """loads arrival times from a file
+
+        Args:
+            path: file to load from
+            replace: whether or not to delete anything currently in the self.arrival_times list
+        """
+        with open(path, 'r') as arr_csv:
+            reader = csv.DictReader(arr_csv)
+
+            if replace:
+                self.arrival_times = []
+
+            for row in reader:
+                self.arrival_times.append((row['arrival_time'], Person(
+                    self._person_logger,
+                    self._building.floors[row['origin']],
+                    self._building.floors[row['destination']])))
+
+    def gen_from_classes(self, file_path, days=None):
+        """generates arrivals from class enrollment list
+
+        Note: each person only makes one journey
+
+        Args:
+            file_path: path to class schedule file
+            days: list of days being simulated (ex: ['M', 'Tu'] -> generate arrivals if class is
+                  scheduled for monday or wednesday). Defaults to Monday.
+        """
+        if days is None:
+            days = set(['M'])
+
+        # read csv, for each class, generate arrivals and departures
+        for i in ArrivalGenerator.parse_csv(file_path):
             # if class isn't scheduled for a day we care about, skip
             if len(days & set(i['days'])) == 0:
                 continue
