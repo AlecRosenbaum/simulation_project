@@ -22,5 +22,6 @@ VERBOSE = True
 #       (time_of_event, object, new_state, [args])
 FEQ = PriorityQueue()
 CURR_DAY = 0 # current day
+CURR_TIME = 0
 ELEVATORS = []
 BUILDING = None

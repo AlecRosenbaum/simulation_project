@@ -3,6 +3,8 @@
 # imports
 # from queue import PriorityQueue
 
+import settings
+
 
 class Building:
     """models the building"""
@@ -32,6 +34,7 @@ class Floor:
         """add to the queue"""
         self.queue.append((time, person))
         self.queue.sort(key=lambda x: x[0])
+        settings.FEQ.put_nowait((settings.CURR_TIME, person, person.States.QUEUED))
 
     def remove_from_queue(self, idx=None):
         """remove and entry of list of indices form queue"""
