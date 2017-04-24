@@ -35,9 +35,12 @@ class Floor:
         self.queue.append((time, person))
         self.queue.sort(key=lambda x: x[0])
 
-    def remove(self, i):
+    def remove(self, person):
         """remove instance i from queue (person comparators have been implemented)"""
-        self.queue.remove(i)
+        for idx, i in enumerate(self.queue):
+            if person == i[1]:
+                self.queue.pop(idx)
+                return
 
     def up(self, num=None):
         """return first <num> queued objects going up
@@ -74,6 +77,11 @@ class Floor:
             if i[1].origin > i[1].destination:
                 yield i[1]
                 cnt += 1
+
+    def __str__(self):
+        return self.name
+
+    __repr__ = __str__
 
     def __lt__(self, cmp):
         floor_order = self.building.floor_order

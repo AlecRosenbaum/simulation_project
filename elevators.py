@@ -24,7 +24,7 @@ class Elevator:
         self._logger = logger
         self._building = building
         self.capacity = capacity # max capacity
-        self.curr_floor = building.floors['1'] # starts on 1st floor
+        self.curr_floor = building.floor['1'] # starts on 1st floor
         self.passengers = []
         self.next_dest = None
 
@@ -57,11 +57,11 @@ class Elevator:
             for floor in destinations: # for each specified floor
                 # quanitify new passengers
                 new_passengers = []
-                for idx, i in enumerate(self.curr_floor.queue):
-                    if len(self.passengers)+len(new_passengers) <= self.capacity:
+                for _, i in self.curr_floor.queue:
+                    if len(self.passengers)+len(new_passengers) >= self.capacity:
                         break
                     if i.destination == floor:
-                        new_passengers.append(idx)
+                        new_passengers.append(i)
 
                 # add new passengers to elevator
                 for i in new_passengers:
@@ -77,7 +77,7 @@ class Elevator:
 
         else: # load all at floor in order of arrival
             for i in self.curr_floor.queue[:self.rem_cap()]:
-                self._add_passenger(i)
+                self._add_passenger(i[1])
 
     def unload_passengers(self):
         """unload passengers for current floor
@@ -105,14 +105,16 @@ class Elevator:
         """
 
         # make sure elevator is aware of people waiting
-        if state is None and self.state == self.States.IDLE:
-            # if theres someone to pick up
-            self.next_dest = self.get_next_dest()
-            if self.next_dest is not None:
-                if self.next_dest == self.curr_floor:
-                    self.update_state(self.States.STOPPED)
-                else:
-                    self.update_state(self.States.MOVING)
+        if state is None:
+            if self.state == self.States.IDLE:
+                # if theres someone to pick up
+                self.next_dest = self.get_next_dest()
+                if self.next_dest is not None:
+                    if self.next_dest == self.curr_floor:
+                        self.update_state(self.States.STOPPED)
+                    else:
+                        self.update_state(self.States.MOVING)
+            return
 
         # update to new state
         self.state = state
@@ -121,6 +123,9 @@ class Elevator:
 
         # act for current state, decide next state
         if self.state == self.States.STOPPED:
+            # update current floor
+            self.curr_floor = self.next_dest
+
             # unload passengers
             if len(self.passengers) > 0:
                 self.unload_passengers()
@@ -145,6 +150,14 @@ class Elevator:
                 settings.CURR_TIME + settings.ELEVATOR_SPEED*abs(self.next_dest-self.curr_floor),
                 self,
                 self.States.STOPPED))
+
+        print("{:.2f} Elevator: {} {} -> {}, {}".format(
+            settings.CURR_TIME,
+            self.state,
+            self.curr_floor,
+            self.next_dest,
+            self.passengers))
+
 
 
     def get_next_dest(self):
@@ -176,14 +189,25 @@ class BasicElevator(Elevator):
         self.destination_queue = []
 
     def get_next_dest(self):
-        # next destination if there is one
-        if len(self.destination_queue) > 0:
-            return self.destination_queue[0]
+        # remove current floor from destination queue
+        if self.curr_floor in self.destination_queue:
+            self.destination_queue.remove(self.curr_floor)
 
         # look for waiting passengers, add destinations
-        for floor in self._building.floors:
+        for floor in [i for i in self._building.floor.values()]:
             if len(floor.queue) > 0 and floor not in self.destination_queue:
                 self.destination_queue.append(floor)
+
+        # if someone is waiting at current floor
+        if len(self.curr_floor.queue) > 0 and self.rem_cap() > 0:
+            return self.curr_floor
+
+        # return next destination if there is one
+        print("destinations", self.destination_queue)
+        if len(self.destination_queue) > 0:
+            return self.destination_queue[0]
+        else:
+            return None
 
     def load(self):
         """load all the passengers at current floor"""

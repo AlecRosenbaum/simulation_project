@@ -49,6 +49,16 @@ class Person:
             state: instance of self.States class
         """
         self.state = state
+        # TODO log state change
+        print("{0:.2f}".format(settings.CURR_TIME), "Person:", self, self.state)
+
+        if self.state == self.States.QUEUED:
+            # add self to queue at origin floor
+            self.origin.push(self, settings.CURR_TIME)
+
+            # update state of the elevators to make sure they're aware of people waiting
+            for i in settings.ELEVATORS:
+                i.update_state()
 
     def __str__(self):
         return "{} -> {}".format(self.origin.name, self.destination.name)
@@ -56,7 +66,7 @@ class Person:
     __repr__ = __str__
 
     def __eq__(self, cmp):
-        return self._id == cmp._id
+        return self._id == cmp._id  # pylint: disable=W0212
 
 class ArrivalGenerator:
     """models floor arrivals based on source data (can save/load data)
@@ -160,7 +170,7 @@ class ArrivalGenerator:
         Note: arrivals are generated according to a different distribution from departures.
 
         Arrivals are generated according to a Chi-Square distribution where 50% of students have
-        arrived by 3.35 before class starts. (Chi-Square, df=4)
+        arrived by 3.35 min before class starts. (Chi-Square, df=4)
 
         Args:
             floor: class's floor
@@ -179,7 +189,7 @@ class ArrivalGenerator:
             else:
                 origin = self._building.floor['1']
             dest = self._building.floor[floor]
-            elevator_arrival_time = time - rand_time
+            elevator_arrival_time = time - rand_time*60 # sec to min
             ret.append((elevator_arrival_time, Person(self._person_logger, origin, dest)))
 
         return ret
@@ -204,7 +214,7 @@ class ArrivalGenerator:
                 dest = self._building.floor['G']
             else:
                 dest = self._building.floor['1']
-            elevator_arrival_time = time + rand_time
+            elevator_arrival_time = time + rand_time*60 # sec to min
             ret.append((elevator_arrival_time, Person(self._person_logger, origin, dest)))
 
         return ret
