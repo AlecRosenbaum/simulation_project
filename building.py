@@ -28,7 +28,7 @@ class Floor:
         """constructor"""
         self.building = building
         self.name = name
-        self.queue = []
+        self.queue = [] #(time, person)
 
     def push(self, person, time):
         """add to the queue"""
