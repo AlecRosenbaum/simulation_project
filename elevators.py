@@ -68,7 +68,7 @@ class Elevator:
                     self._add_passenger(i)
 
         elif direction is not None: # direction is specified
-            if direction == "up"
+            if direction == "up":
                 for i in self.curr_floor.up(self.rem_cap()):
                     self._add_passenger(i)
             elif direction == "down":
