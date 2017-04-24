@@ -20,14 +20,12 @@ class Person:
         """states implemented for stations"""
         IDLE = auto()
         QUEUED = auto()
-        PRE_SERVICE = auto() # walking onto elevator
         SERVICE = auto() # elevator moving between floors
-        POST_SERVICE = auto() # walking off of elevator
 
     def __init__(self, logger, origin, destination):
         """ Person Constructor
 
-        Each person has a unique id (person_id), and keeps track of their own state changes. All
+        Each person has a unique id (_id), and keeps track of their own state changes. All
         state changes are logged in the person logger.
 
         Args:
@@ -36,13 +34,13 @@ class Person:
             destination: destination floor (instance of Floor object)
         """
         self.state = self.States.IDLE
-        self.person_id = Person.person_ctr
+        self._id = self.__class__.person_ctr
         self.logger = logger
         self.curr_elevator = None
         self.origin = origin
         self.destination = destination
 
-        Person.person_ctr += 1
+        self.__class__.person_ctr += 1
 
     def update_state(self, state):
         """updates current state. if none specified, updates based on current state variables.
@@ -56,6 +54,9 @@ class Person:
         return "{} -> {}".format(self.origin.name, self.destination.name)
 
     __repr__ = __str__
+
+    def __eq__(self, cmp):
+        return self._id == cmp._id
 
 class ArrivalGenerator:
     """models floor arrivals based on source data (can save/load data)

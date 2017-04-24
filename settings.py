@@ -5,6 +5,7 @@ from os import path
 # configuration constants
 DEFAULT_CAPACITY = 20
 G_ENTRY_PCT = .6
+ELEVATOR_SPEED = 15 # 15 seconds per floor traveled
 
 # log filename
 PERSON_LOG_FNAME = "person.sqlite3"

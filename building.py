@@ -30,55 +30,49 @@ class Floor:
         self.name = name
         self.queue = []
 
-    def add_to_queue(self, person, time):
+    def push(self, person, time):
         """add to the queue"""
         self.queue.append((time, person))
         self.queue.sort(key=lambda x: x[0])
-        settings.FEQ.put_nowait((settings.CURR_TIME, person, person.States.QUEUED))
 
-    def remove_from_queue(self, idx=None):
-        """remove and entry of list of indices form queue"""
-        for i in sorted(idx, reverse=True):
-            self.queue.pop(i)
+    def remove(self, i):
+        """remove instance i from queue (person comparators have been implemented)"""
+        self.queue.remove(i)
 
-    def get_up(self, num=None):
+    def up(self, num=None):
         """return first <num> queued objects going up
 
         Args:
             num: number of queued "person" instances to return
 
         Ret:
-            returns two values:
-                idx: index of object in queue
-                person: person object in queue
+            yields each person object in queue going up
         """
         cnt = 0
-        for idx, i in enumerate(self.queue):
+        for i in self.queue:
             if num is not None and cnt >= num:
                 break
 
             if i[1].origin < i[1].destination:
-                yield idx, i[1]
+                yield i[1]
                 cnt += 1
 
-    def get_down(self, num=None):
+    def down(self, num=None):
         """return first <num> queued objects going down
 
         Args:
             num: number of queued "person" instances to return
 
         Ret:
-            returns two values:
-                idx: index of object in queue
-                person: person object in queue
+            yields each person object in queue going up
         """
         cnt = 0
-        for idx, i in enumerate(self.queue):
+        for i in self.queue:
             if num is not None and cnt >= num:
                 break
 
             if i[1].origin > i[1].destination:
-                yield idx, i[1]
+                yield i[1]
                 cnt += 1
 
     def __lt__(self, cmp):
@@ -88,3 +82,10 @@ class Floor:
     def __gt__(self, cmp):
         floor_order = self.building.floor_order
         return floor_order.index(self.name) > floor_order.index(cmp.name)
+
+    def __eq__(self, cmp):
+        return self.name == cmp.name
+
+    def __sub__(self, cmp):
+        floor_order = self.building.floor_order
+        return floor_order.index(self.name) - floor_order.index(cmp.name)
