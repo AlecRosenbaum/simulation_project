@@ -102,7 +102,6 @@ class Elevator:
 
     def update_state(self, state=None):
         """Update the state of the elevator
-        For now it just uses a generic time.
         """
 
         # make sure elevator is aware of people waiting
@@ -120,7 +119,6 @@ class Elevator:
         # update to new state
         self.state = state
         # TODO: log state change
-
 
         # act for current state, decide next state
         if self.state == self.States.STOPPED:
@@ -214,9 +212,35 @@ class BasicElevator(Elevator):
         """load all the passengers at current floor"""
 
         # load all passengers
-        self._load_passengers()
+        self._load_passengers(self.destination_queue, None)
 
         # note their destinations
         for i in self.passengers:
             if i.destination not in self.destination_queue:
                 self.destination_queue.append(i.destination)
+
+class ScanElevator(Elevator):
+    """
+    This elevator travels up to the top, and down to the bottom
+    It stops if someone is on the floor waiting for it or there
+    is passengers who want to get off there
+    """
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.direction = "up"
+
+    def get_next_dest(self):
+        if self.direction is "up" and self.curr_floor is not self._building.floor_order[-1].name:
+            return self._building.floor_order[self._building.floor_order.index(self.curr_floor) + 1]
+        elif self.direction is "up" and self.curr_floor is self._building.floor_order[-1].name:
+            self.direction = "down"
+            return self._building.floor_order[-1] - 1
+        elif self.direction is "down" and self.curr_floor is not self._building.floor_order[0].name:
+            return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
+        elif self.direction is "down" and self.curr_floor is self._building.floor_order[0].name:
+            self.direction = "up"
+            return self._building.floor_order[1]
+
+    def load(self):
+        """load all the passengers at current floor"""
+        self._load_passengers(None, "up")
