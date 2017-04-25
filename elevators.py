@@ -7,7 +7,7 @@ from enum import Enum, auto
 import settings
 
 class Elevator:
-    """base abstract class for elevators"""
+    """base abstract class for elevator cars"""
 
     elevator_cnt = 0
 
@@ -175,6 +175,8 @@ class Elevator:
         return self.capacity - len(self.passengers)
 
 
+# SINGLE-ELEVATOR ALGORITHMS
+
 class BasicElevator(Elevator):
     """Basic elevator simply used for testing other code
 
@@ -245,21 +247,31 @@ class ScanElevator(Elevator):
         """load all the passengers at current floor"""
         self._load_passengers(None, "up")
 
-class ElevatorController:
-    """Base Controller for algorithms that use several elevators"""
 
-    def __init__(self, building, num_elevators):
+# MULTI-ELEVATOR ALGORITHMS
+
+class ElevatorController:
+    """Base Elevator Car Controller for algorithms that use several elevators"""
+
+    def __init__(self, building):
         self._building = building
         self.elevators = []
-        for i in range(0, num_elevators):
-            self.elevators[i] = ControlledElevator
 
-    def load_passengers(self, destinations=None, direction=None):
-        """load_passengers into the elevator, must be implented by subclass"""
+    def spawn_elevators(self, num_elevators, *args, **kwargs):
+        """creates controlled elevartors
+
+        Args:
+            num_elevators: number of elevators to spawn
+            other: required and optional arguments pass to ControlledElevator constructor
+        """
+        self.elevators.extend([ControlledElevator(*args, **kwargs) for _ in range(num_elevators)])
+
+    def load_passengers(self, elevator):
+        """load_passengers into an elevator, must be implented by subclass"""
         raise NotImplementedError()
 
-    def get_next_dest(self):
-        """Must be implemented by each subclass"""
+    def get_next_dest(self, elevator):
+        """called by each controlled elevator, must be implemented by each subclass"""
         raise NotImplementedError()
 
 class ControlledElevator(Elevator):
@@ -271,8 +283,8 @@ class ControlledElevator(Elevator):
 
     def load(self):
         """load_passengers into the elevator"""
-        self._controller.load_passengers()
+        self._controller.load_passengers(self)
 
     def get_next_dest(self):
         """Must be implemented by each algorithm subclass"""
-        self._controller.get_next_dest()
+        self._controller.get_next_dest(self)
