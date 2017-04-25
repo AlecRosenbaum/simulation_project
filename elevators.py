@@ -195,6 +195,7 @@ class BasicElevator(Elevator):
         # look for waiting passengers, add destinations
         for floor in [i for i in self._building.floor.values()]:
             if len(floor.queue) > 0 and floor not in self.destination_queue:
+                print("floor {} queue: {}".format(floor.name, floor.queue))
                 self.destination_queue.append(floor)
 
         # if someone is waiting at current floor
@@ -212,7 +213,7 @@ class BasicElevator(Elevator):
         """load all the passengers at current floor"""
 
         # load all passengers
-        self._load_passengers(self.destination_queue, None)
+        self._load_passengers()
 
         # note their destinations
         for i in self.passengers:
