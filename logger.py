@@ -24,6 +24,12 @@ class Logger:
 
         # create new database, or connect to existing
         if not os.path.isfile(self.db_path):
+            # create directory tree
+            dirs = os.path.dirname(self.db_path)
+            if not os.path.exists(dirs):
+                os.makedirs(dirs)
+
+            # create database
             self.conn = sqlite3.connect(self.db_path)
             self.conn.execute(self.__class__.CREATE_TABLE_STMT)
             self.conn.commit()
@@ -90,19 +96,19 @@ class PersonLogger(Logger):
         """write states to log database"""
         if person.curr_elevator:
             stmt = self.__class__.INSERT_STMT.format(
-                person.person_id,
+                person.id,
                 day,
                 time,
                 person.state,
-                person.curr_elevator.elevator_id,
+                person.curr_elevator.id,
                 person.curr_elevator.state)
         else:
             stmt = self.__class__.INSERT_STMT.format(
-                person.person_id,
+                person.id,
                 day,
                 time,
                 person.state,
-                "None",
+                -1,
                 "None")
         self.conn.execute(stmt)
         # Note: usually it would make sense to commit changes here, but it is much faster

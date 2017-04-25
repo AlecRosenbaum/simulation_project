@@ -8,6 +8,7 @@ G_ENTRY_PCT = .6
 ELEVATOR_SPEED = 15 # 15 seconds per floor traveled
 
 # log filename
+LOG_DIR = "logs"
 PERSON_LOG_FNAME = "person.sqlite3"
 ELEVATOR_LOG_FNAME = "elevator.sqlite3"
 

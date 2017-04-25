@@ -84,7 +84,7 @@ class Elevator:
 
         anyone who has arrived at their destination is removed from the elevator
         """
-        for person in self.passengers:
+        for person in self.passengers[:]:
             if person.destination == self.curr_floor:
                 self.passengers.remove(person)
                 person.update_state(person.States.IDLE)
@@ -97,6 +97,7 @@ class Elevator:
         """
         self.passengers.append(person)
         self.curr_floor.remove(person)
+        person.curr_elevator = self
         person.update_state(person.States.SERVICE)
 
     def update_state(self, state=None):

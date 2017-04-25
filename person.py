@@ -4,6 +4,7 @@
 from enum import Enum, auto
 import csv
 import datetime
+import os
 
 import numpy as np
 
@@ -34,7 +35,7 @@ class Person:
             destination: destination floor (instance of Floor object)
         """
         self.state = self.States.IDLE
-        self._id = self.__class__.person_ctr
+        self.id = self.__class__.person_ctr
         self.logger = logger
         self.curr_elevator = None
         self.origin = origin
@@ -49,7 +50,7 @@ class Person:
             state: instance of self.States class
         """
         self.state = state
-        # TODO log state change
+        self.logger.write_log(self, settings.CURR_DAY, settings.CURR_TIME)
         print("{0:.2f}".format(settings.CURR_TIME), "Person:", self, self.state)
 
         if self.state == self.States.QUEUED:
@@ -66,7 +67,7 @@ class Person:
     __repr__ = __str__
 
     def __eq__(self, cmp):
-        return self._id == cmp._id  # pylint: disable=W0212
+        return self.id == cmp.id  # pylint: disable=W0212
 
 class ArrivalGenerator:
     """models floor arrivals based on source data (can save/load data)
@@ -101,6 +102,10 @@ class ArrivalGenerator:
         Args:
             path: file to save to
         """
+        dirs = os.path.dirname(path)
+        if not os.path.exists(dirs):
+            os.makedirs(dirs)
+
         with open(path, 'w') as arr_csv:
             fields = ['arrival_time', 'origin', 'destination']
             writer = csv.DictWriter(arr_csv, fieldnames=fields)
@@ -126,10 +131,10 @@ class ArrivalGenerator:
                 self.arrival_times = []
 
             for row in reader:
-                self.arrival_times.append((row['arrival_time'], Person(
+                self.arrival_times.append((float(row['arrival_time']), Person(
                     self._person_logger,
-                    self._building.floors[row['origin']],
-                    self._building.floors[row['destination']])))
+                    self._building.floor[row['origin']],
+                    self._building.floor[row['destination']])))
 
     def gen_from_classes(self, file_path, days=None):
         """generates arrivals from class enrollment list
