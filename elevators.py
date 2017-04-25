@@ -6,7 +6,6 @@ from enum import Enum, auto
 # local imports
 import settings
 
-
 class Elevator:
     """base abstract class for elevators"""
 
@@ -245,3 +244,35 @@ class ScanElevator(Elevator):
     def load(self):
         """load all the passengers at current floor"""
         self._load_passengers(None, "up")
+
+class ElevatorController:
+    """Base Controller for algorithms that use several elevators"""
+
+    def __init__(self, building, num_elevators):
+        self._building = building
+        self.elevators = []
+        for i in range(0, num_elevators):
+            self.elevators[i] = ControlledElevator
+
+    def load_passengers(self, destinations=None, direction=None):
+        """load_passengers into the elevator, must be implented by subclass"""
+        raise NotImplementedError()
+
+    def get_next_dest(self):
+        """Must be implemented by each subclass"""
+        raise NotImplementedError()
+
+class ControlledElevator(Elevator):
+    """Elevator used by the elevator controller"""
+
+    def __init__(self, controller, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self._controller = controller
+
+    def load(self):
+        """load_passengers into the elevator"""
+        self._controller.load_passengers()
+
+    def get_next_dest(self):
+        """Must be implemented by each algorithm subclass"""
+        self._controller.get_next_dest()
