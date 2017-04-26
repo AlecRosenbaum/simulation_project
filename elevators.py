@@ -437,3 +437,18 @@ class NearestCarElevatorController(ElevatorController):
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
             self._building.remove(arrival[1]) #we're finished with this arrival
+
+class FixedSectorsElevatorController(ElevatorController):
+    """This controller implements the Fixed Sector algorithm
+
+    The building is divided into sectors, and elevators are set to respond to calls
+    only in their given sector.
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.spawn_elevators(6) #get 6 elevators
+
+    def get_next_dest(self, elevator):
+        pass
