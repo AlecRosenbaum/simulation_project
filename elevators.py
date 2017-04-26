@@ -383,6 +383,8 @@ class NearestCarElevatorController(ElevatorController):
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
 
+        self.update_dests()
+
         if len(elevator.destination_queue) is not 0:
             #find the shortest destination in our direction as the next destination
             #if there is none, go the other way
