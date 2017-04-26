@@ -358,21 +358,44 @@ class NearestCarElevatorController(ElevatorController):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.spawn_elevators(6) #get 6 elevators
 
-    #return the closest destination in the queue of destinations
+    #return the closest index in the queue of destinations, or None
+    #if there is no destination in that direction
+    def _find_shortest(self, elevator):
+        shortest = None
+        for idx, destination in enumerate(elevator.destination_queue):
+            if elevator.direction == "up":
+                if destination > elevator.curr_floor:
+                    if shortest is None:
+                        shortest = idx
+                    elif destination - elevator.curr_floor < elevator.destination_queue[shortest]:
+                        shortest = idx
+            else:
+                if destination < elevator.curr_floor:
+                    if shortest is None:
+                        shortest = idx
+                    elif elevator.curr_floor - destination < elevator.destination_queue[shortest]:
+                        shortest = idx
+        return shortest
+
+    #return the closest destination in the current direction
     def get_next_dest(self, elevator):
         # remove current floor from destination queue
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
 
         if len(elevator.destination_queue) is not 0:
-            shortest = 0
-            for idx, destination in enumerate(elevator.destination_queue):
+            #find the shortest destination in our direction as the next destination
+            #if there is none, go the other way
+
+            shortest = self._find_shortest(elevator)
+
+            if shortest is None:
                 if elevator.direction == "up":
-                    if destination - elevator.curr_floor < elevator.destination_queue[shortest]:
-                        shortest = idx
+                    elevator.direction = "down"
                 else:
-                    if elevator.curr_floor - destination < elevator.destination_queue[shortest]:
-                        shortest = idx
+                    elevator.direction = "up"
+                shortest = self._find_shortest(elevator)
+
             return elevator.destination_queue[shortest]
         else:
             return None
