@@ -232,24 +232,23 @@ class ScanElevator(Elevator):
 
     def get_next_dest(self):
         max_index = len(self._building.floor_order)-1
-        max_floor = self._building.floor_order[max_index]
-        min_floor = self._building.floor_order[0]
-        print("Max Floor: ", max_floor)
-        print("Min Floor: ", min_floor)
-        print("Max Floor Index: ", max_index)
+        current_floor_index = self._building.floor_order.index(self.curr_floor.name)
         print("Current Floor: ", self.curr_floor.name)
-        current_floor_index = self._building.floor_order.index(self.curr_floor)
 
-        if self.direction is "up" and self.curr_floor is not max_floor:
-            return self._building.floor_order[current_floor_index + 1]
-        elif self.direction is "up" and self.curr_floor is max_floor:
+        if self.direction is "up" and current_floor_index is not max_index:
+            name = self._building.floor_order[current_floor_index+1]
+            return self._building.floor[name]
+        elif self.direction is "up" and current_floor_index is max_index:
             self.direction = "down"
-            return self._building.floor_order[current_floor_index -1]
-        elif self.direction is "down" and self.curr_floor is not min_floor:
-            return self._building.floor_order[current_floor_index - 1]
-        elif self.direction is "down" and self.curr_floor is min_floor:
+            name = self._building.floor_order[current_floor_index-1]
+            return self._building.floor[name]
+        elif self.direction is "down" and current_floor_index is not 0:
+            name = self._building.floor_order[current_floor_index-1]
+            return self._building.floor[name]
+        elif self.direction is "down" and current_floor_index is 0:
             self.direction = "up"
-            return self._building.floor_order[1]
+            name = self._building.floor_order[1]
+            return self._building.floor[name]
 
     def load(self):
         """load all the passengers at current floor"""
@@ -264,8 +263,12 @@ class LookElevator(Elevator):
         self.direction = "up"
 
     def get_next_dest(self):
+        max_index = len(self._building.floor_order)-1
+        current_floor_index = self._building.floor_order.index(self.curr_floor.name)
+        print("Current Floor: ", self.curr_floor.name)
+
         #if we're going up and we aren't at the top floor
-        if self.direction is "up" and self.curr_floor is not self._building.floor_order[-1].name:
+        if self.direction is "up" and current_floor_index is not max_index:
             #need to find the highest destination
             max_dest = 0
             for idx, i in self._building.all_arrivals:
@@ -273,32 +276,32 @@ class LookElevator(Elevator):
                     max_dest = idx
 
             #if we're still below the highest destination, keep going up
-            if self.curr_floor < self._building.floor_order[max_dest]:
+            if current_floor_index < max_index:
                 return self._building.floor_order[self._building.floor_order.index(self.curr_floor) + 1]
             #otherwise, go down
             else:
                 self.direction = "down"
                 return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
         #if we're going up and we're at the top floor, we need to go down
-        elif self.direction is "up" and self.curr_floor is self._building.floor_order[-1].name:
+        elif self.direction is "up" and current_floor_index is max_index:
             self.direction = "down"
             return self._building.floor_order[-1] - 1
         #if we're going down and we aren't at the bottom floor
-        elif self.direction is "down" and self.curr_floor is not self._building.floor_order[0].name:
+        elif self.direction is "down" and current_floor_index is not 0:
             #need to find the lowest destionation
             min_dest = 0
             for idx, i in self._building.all_arrivals:
                 if i[2] < self._building.all_arrivals[min_dest][2]:
                     min_dest = idx
             #if we're still above the lowest destination, keep going down
-            if self.curr_floor > self._building.floor_order[min_dest]:
+            if current_floor_index > 0:
                 return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
             #otherwise, go up
             else:
                 self.direction = "up"
                 return self._building.floor_order[self._building.floor_order.index(self.curr_floor) + 1]
         #if we're going down and we're at the bottom floow, we need to go up
-        elif self.direction is "down" and self.curr_floor is self._building.floor_order[0].name:
+        elif self.direction is "down" and current_floor_index is 0:
             self.direction = "up"
             return self._building.floor_order[1]
 
