@@ -231,14 +231,23 @@ class ScanElevator(Elevator):
         self.direction = "up"
 
     def get_next_dest(self):
-        if self.direction is "up" and self.curr_floor is not self._building.floor_order[-1].name:
-            return self._building.floor_order[self._building.floor_order.index(self.curr_floor) + 1]
-        elif self.direction is "up" and self.curr_floor is self._building.floor_order[-1].name:
+        max_index = len(self._building.floor_order)-1
+        max_floor = self._building.floor_order[max_index]
+        min_floor = self._building.floor_order[0]
+        print("Max Floor: ", max_floor)
+        print("Min Floor: ", min_floor)
+        print("Max Floor Index: ", max_index)
+        print("Current Floor: ", self.curr_floor.name)
+        current_floor_index = self._building.floor_order.index(self.curr_floor)
+
+        if self.direction is "up" and self.curr_floor is not max_floor:
+            return self._building.floor_order[current_floor_index + 1]
+        elif self.direction is "up" and self.curr_floor is max_floor:
             self.direction = "down"
-            return self._building.floor_order[-1] - 1
-        elif self.direction is "down" and self.curr_floor is not self._building.floor_order[0].name:
-            return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
-        elif self.direction is "down" and self.curr_floor is self._building.floor_order[0].name:
+            return self._building.floor_order[current_floor_index -1]
+        elif self.direction is "down" and self.curr_floor is not min_floor:
+            return self._building.floor_order[current_floor_index - 1]
+        elif self.direction is "down" and self.curr_floor is min_floor:
             self.direction = "up"
             return self._building.floor_order[1]
 

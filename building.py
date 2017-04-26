@@ -111,6 +111,7 @@ class Floor:
     def __eq__(self, cmp):
         return self.name == cmp.name
 
+
     def __sub__(self, cmp):
         floor_order = self.building.floor_order
         return floor_order.index(self.name) - floor_order.index(cmp.name)
