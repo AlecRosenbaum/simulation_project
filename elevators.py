@@ -62,7 +62,8 @@ class Elevator:
                     if i.destination == floor:
                         new_passengers.append(i)
 
-                # add new passengers to elevator
+                # add new passengers to elevator and remove them from the list
+                # of arrivals
                 for i in new_passengers:
                     self._add_passenger(i)
 
@@ -223,9 +224,7 @@ class BasicElevator(Elevator):
 
 class ScanElevator(Elevator):
     """
-    This elevator travels up to the top, and down to the bottom
-    It stops if someone is on the floor waiting for it or there
-    is passengers who want to get off there
+    This elevator travels up to the top, and down to the bottom.
     """
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
@@ -239,6 +238,57 @@ class ScanElevator(Elevator):
             return self._building.floor_order[-1] - 1
         elif self.direction is "down" and self.curr_floor is not self._building.floor_order[0].name:
             return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
+        elif self.direction is "down" and self.curr_floor is self._building.floor_order[0].name:
+            self.direction = "up"
+            return self._building.floor_order[1]
+
+    def load(self):
+        """load all the passengers at current floor"""
+        self._load_passengers(None, "up")
+
+class LookElevator(Elevator):
+    """
+    This elevator travels up/down as far as the highest destination/arrival.
+    """
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.direction = "up"
+
+    def get_next_dest(self):
+        #if we're going up and we aren't at the top floor
+        if self.direction is "up" and self.curr_floor is not self._building.floor_order[-1].name:
+            #need to find the highest destination
+            max_dest = 0
+            for idx, i in self._building.all_arrivals:
+                if i[2] > self._building.all_arrivals[max_dest][2]:
+                    max_dest = idx
+
+            #if we're still below the highest destination, keep going up
+            if self.curr_floor < self._building.floor_order[max_dest]:
+                return self._building.floor_order[self._building.floor_order.index(self.curr_floor) + 1]
+            #otherwise, go down
+            else:
+                self.direction = "down"
+                return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
+        #if we're going up and we're at the top floor, we need to go down
+        elif self.direction is "up" and self.curr_floor is self._building.floor_order[-1].name:
+            self.direction = "down"
+            return self._building.floor_order[-1] - 1
+        #if we're going down and we aren't at the bottom floor
+        elif self.direction is "down" and self.curr_floor is not self._building.floor_order[0].name:
+            #need to find the lowest destionation
+            min_dest = 0
+            for idx, i in self._building.all_arrivals:
+                if i[2] < self._building.all_arrivals[min_dest][2]:
+                    min_dest = idx
+            #if we're still above the lowest destination, keep going down
+            if self.curr_floor > self._building.floor_order[min_dest]:
+                return self._building.floor_order[self._building.floor_order.index(self.curr_floor) - 1]
+            #otherwise, go up
+            else:
+                self.direction = "up"
+                return self._building.floor_order[self._building.floor_order.index(self.curr_floor) + 1]
+        #if we're going down and we're at the bottom floow, we need to go up
         elif self.direction is "down" and self.curr_floor is self._building.floor_order[0].name:
             self.direction = "up"
             return self._building.floor_order[1]
@@ -266,25 +316,99 @@ class ElevatorController:
         """
         self.elevators.extend([ControlledElevator(*args, **kwargs) for _ in range(num_elevators)])
 
-    def load_passengers(self, elevator):
-        """load_passengers into an elevator, must be implented by subclass"""
-        raise NotImplementedError()
-
     def get_next_dest(self, elevator):
         """called by each controlled elevator, must be implemented by each subclass"""
         raise NotImplementedError()
 
 class ControlledElevator(Elevator):
-    """Elevator used by the elevator controller"""
+    """Elevator used by the elevator controller
+    """
 
     def __init__(self, controller, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self._controller = controller
+        self.destination_queue = []
+        self.direction = "up"
 
     def load(self):
         """load_passengers into the elevator"""
-        self._controller.load_passengers(self)
+        self._load_passengers(self)
 
     def get_next_dest(self):
         """Must be implemented by each algorithm subclass"""
         self._controller.get_next_dest(self)
+
+class NearestCarElevatorController(ElevatorController):
+    """
+    This controller implements the Nearest Car First algorithm
+
+    Each elevator has a "Figure of Suitability", fig_suit.
+    If an elevator is moving towards a call, and the call is in the same direction,
+    FS = (N + 2) - d, where N is one less than the number of floors in the building,
+    and d is the distance in floors between the elevator and the passenger call.
+    If the elevator is moving towards the call, but the call is in the opposite direction,
+    FS = (N + 1) - d.
+    If the elevator is moving away from the point of call, FS = 1.
+    The elevator with the highest FS for each call is sent to answer it.
+
+    Source: https://www.quora.com/Is-there-any-public-elevator-scheduling-algorithm-standard
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.spawn_elevators(6) #get 6 elevators
+
+    #return the closest destination in the queue of destinations
+    def get_next_dest(self, elevator):
+        # remove current floor from destination queue
+        if elevator.curr_floor in elevator.destination_queue:
+            elevator.destination_queue.remove(elevator.curr_floor)
+
+        if len(elevator.destination_queue) is not 0:
+            shortest = 0
+            for idx, destination in enumerate(elevator.destination_queue):
+                if elevator.direction == "up":
+                    if destination - elevator.curr_floor < elevator.destination_queue[shortest]:
+                        shortest = idx
+                else:
+                    if elevator.curr_floor - destination < elevator.destination_queue[shortest]:
+                        shortest = idx
+            return elevator.destination_queue[shortest]
+        else:
+            return None
+
+    def update_dests(self):
+        """Update the destinations of all elevators based on calculated scores"""
+        fos = [] #figures of suitability for each elevator
+        for arrival in self._building.all_arrivals:
+            for idx, elevator in enumerate(self.elevators):
+                #if the person is on a floor we're going up to
+                if elevator.direction == "up" and arrival[2] > elevator.curr_floor:
+                    #if the person's destination is up
+                    if arrival[1].destination > arrival[2]:
+                        fos[idx] = (14 + 2) - abs((arrival[2] - elevator.curr_floor))
+                    #if the person's destination is down
+                    else:
+                        fos[idx] = (14 + 1) - abs((arrival[2] - elevator.curr_floor))
+                #if the person is on a floor we're going down to
+                elif elevator.direction == "down" and arrival[2] < elevator.curr_floor:
+                    #if the person's destination is down
+                    if arrival[1].destination < arrival[2]:
+                        fos[idx] = (14 + 2) - abs((arrival[2] - elevator.curr_floor))
+                    #if the person's destination is up
+                    else:
+                        fos[idx] = (14 + 1) - abs((arrival[2] - elevator.curr_floor))
+                #if the person is in the opposite direction that we're moving
+                else:
+                    fos[idx] = 1
+
+            #find the greatest figure of suitability for this arrival
+            max_idx = 0
+            for i, _ in enumerate(fos):
+                if fos[i] > fos[max_idx]:
+                    max_idx = i
+
+            #add this floor to the destination queue of the best elevator
+            self.elevators[max_idx].destination_queue.append(arrival[2])
+
+            self._building.remove(arrival[1]) #we're finished with this arrival
