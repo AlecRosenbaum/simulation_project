@@ -329,6 +329,7 @@ class ControlledElevator(Elevator):
         self._controller = controller
         self.destination_queue = []
         self.direction = "up"
+        self.sector = None
 
     def load(self):
         """load_passengers into the elevator"""
@@ -441,14 +442,27 @@ class NearestCarElevatorController(ElevatorController):
 class FixedSectorsElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
 
-    The building is divided into sectors, and elevators are set to respond to calls
-    only in their given sector.
+    The building is divided into as many sectors as there are elevators,
+    and elevators will respond to calls within their sector.
 
     """
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.spawn_elevators(6) #get 6 elevators
+        self._set_sectors()
+
+
+    def _set_sectors(self):
+        """Set the sectors for each elevator, as a range in the
+        buildings floor_order"""
+        #self.elevators[0].sector = self._building.floor_order[]
+        #self.elevators[1].sector = self._building.floor_order[]
+        #self.elevators[2].sector = self._building.floor_order[]
+        #self.elevators[3].sector = self._building.floor_order[]
+        #self.elevators[4].sector = self._building.floor_order[]
+        #self.elevators[5].sector = self._building.floor_order[]
+
 
     def get_next_dest(self, elevator):
         pass
