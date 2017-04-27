@@ -477,12 +477,12 @@ class FixedSectorsElevatorController(ElevatorController):
     def _set_sectors(self):
         """Set the sectors for each elevator, as a range in the
         buildings floor_order"""
-        self.elevators[0].sector = self._building.floor_order["G","1","2","3"]
-        self.elevators[1].sector = self._building.floor_order["G","1","2","3"]
-        self.elevators[2].sector = self._building.floor_order["G","1","2","3"]
-        self.elevators[3].sector = self._building.floor_order["G","1","2","3","10"]
-        self.elevators[4].sector = self._building.floor_order["SB","B","1","G"]
-        self.elevators[5].sector = self._building.floor_order["G","1","6","8","9"]
+        self.elevators[0].sector = self._building.floor_order["G", "1", "2", "3"]
+        self.elevators[1].sector = self._building.floor_order["G", "1", "2", "3"]
+        self.elevators[2].sector = self._building.floor_order["G", "1", "2", "3"]
+        self.elevators[3].sector = self._building.floor_order["G", "1", "2", "3", "10", "12"]
+        self.elevators[4].sector = self._building.floor_order["SB", "B", "1", "G"]
+        self.elevators[5].sector = self._building.floor_order["G", "1", "6", "8", "9"]
 
 
     def get_next_dest(self, elevator):

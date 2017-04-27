@@ -24,6 +24,8 @@ def main():
 
     select_chunks = ["WITH Temp AS (",
                      " SELECT Enrollment, CASE ",
+                     " WHEN Room LIKE '%11__' THEN '11'",
+                     " WHEN Room LIKE '%12__' THEN '12'",
                      " WHEN ROOM LIKE '%SB%' THEN 'SB'",
                      " WHEN Room LIKE '00B%' THEN 'B'",
                      " WHEN Room LIKE '00G%' THEN 'G'",
@@ -37,8 +39,6 @@ def main():
                      " WHEN Room LIKE '%8__' THEN '8'",
                      " WHEN Room LIKE '%9__' THEN '9'",
                      " WHEN Room LIKE '%10__' THEN '10'",
-                     " WHEN Room LIKE '%11__' THEN '11'",
-                     " WHEN Room LIKE '%12__' THEN '12'",
                      " ELSE NULL",
                      " END AS Floor FROM t)",
                      "SELECT Floor, SUM(Enrollment) as Total_Per_Floor",
