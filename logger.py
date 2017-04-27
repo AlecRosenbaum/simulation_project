@@ -65,7 +65,8 @@ class PersonLogger(Logger):
                                EVENT_TIME INT,
                                STATE TEXT,
                                ELEVATOR_ID INT,
-                               ELEVATOR_STATE TEXT
+                               ORIGIN TEXT,
+                               DEST TEXT
                             )"""
 
     INSERT_STMT = """
@@ -75,8 +76,9 @@ class PersonLogger(Logger):
                         EVENT_TIME,
                         STATE,
                         ELEVATOR_ID,
-                        ELEVATOR_STATE)
-                    VALUES ({}, {}, {}, '{}', {}, '{}')"""
+                        ORIGIN,
+                        DEST)
+                    VALUES ({}, {}, {}, '{}', {}, '{}', '{}')"""
 
     SELECT_ALL_STMT = """
                         SELECT
@@ -85,7 +87,8 @@ class PersonLogger(Logger):
                             EVENT_TIME,
                             STATE,
                             ELEVATOR_ID,
-                            ELEVATOR_STATE
+                            ORIGIN,
+                            DEST
                         FROM
                             PERSON_LOGS"""
 
@@ -101,7 +104,8 @@ class PersonLogger(Logger):
                 time,
                 person.state,
                 person.curr_elevator.id,
-                person.curr_elevator.state)
+                person.origin.building.floor_order.index(person.origin.name),
+                person.destination.building.floor_order.index(person.destination.name))
         else:
             stmt = self.__class__.INSERT_STMT.format(
                 person.id,
@@ -109,7 +113,8 @@ class PersonLogger(Logger):
                 time,
                 person.state,
                 -1,
-                "None")
+                person.origin.building.floor_order.index(person.origin.name),
+                person.destination.building.floor_order.index(person.destination.name))
         self.conn.execute(stmt)
         # Note: usually it would make sense to commit changes here, but it is much faster
         #       if the commit is done after all simulation is finished
