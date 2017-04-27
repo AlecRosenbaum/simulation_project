@@ -51,7 +51,8 @@ class Person:
         """
         self.state = state
         self.logger.write_log(self, settings.CURR_DAY, settings.CURR_TIME)
-        print("{0:.2f}".format(settings.CURR_TIME), "Person:", self, self.state)
+        if settings.VERBOSE:
+            print("{0:.2f}".format(settings.CURR_TIME), "Person:", self, self.state)
 
         if self.state == self.States.QUEUED:
             # add self to queue at origin floor
