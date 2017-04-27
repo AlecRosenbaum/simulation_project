@@ -30,7 +30,7 @@ def test_scan_elevator():
     else:
         arr_gen.load(save_path)
 
-    # add first 100 floor arrival to FEQ
+    # add first 100 floor arrivals to FEQ
     cnt = 0
     for time, person in arr_gen.arrival_times:
         cnt += 1
@@ -49,7 +49,7 @@ def test_scan_elevator():
     # commit changes to person_logger
     person_logger.conn.commit()
 
-    sim_stats.main()
+    sim_stats.run_stats()
 
 
 def test_look_elevator():
@@ -91,7 +91,7 @@ def test_look_elevator():
     # commit changes to person_logger
     person_logger.conn.commit()
 
-    sim_stats.main()
+    sim_stats.run_stats()
 
 def test_nearest_elevator():
     pass
