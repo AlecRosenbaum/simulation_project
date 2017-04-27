@@ -140,22 +140,23 @@ class Elevator:
             else:
                 next_state = self.States.MOVING
 
-            # start moving after some loading time (flat 30 seconds for now)
-            settings.FEQ.put_nowait((settings.CURR_TIME + 30, self, next_state))
+            # start moving after some loading time (flat 15 seconds for now)
+            settings.FEQ.put_nowait((settings.CURR_TIME + 15, self, next_state))
 
         elif self.state == self.States.MOVING:
             # determing how long until next destination is reached, add event to feq
             settings.FEQ.put_nowait((
-                settings.CURR_TIME + settings.ELEVATOR_SPEED*abs(self.next_dest-self.curr_floor),
+                settings.CURR_TIME + 1 + settings.ELEVATOR_SPEED*abs(self.next_dest-self.curr_floor),
                 self,
                 self.States.STOPPED))
 
-        print("{:.2f} Elevator: {} {} -> {}, {}".format(
-            settings.CURR_TIME,
-            self.state,
-            self.curr_floor,
-            self.next_dest,
-            self.passengers))
+        if settings.VERBOSE:
+            print("{:.2f} Elevator: {} {} -> {}, {}".format(
+                settings.CURR_TIME,
+                self.state,
+                self.curr_floor,
+                self.next_dest,
+                self.passengers))
 
 
 
