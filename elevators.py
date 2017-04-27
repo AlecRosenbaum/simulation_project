@@ -364,7 +364,7 @@ class NearestCarElevatorController(ElevatorController):
     """
     This controller implements the Nearest Car First algorithm
 
-    Each elevator has a "Figure of Suitability", fig_suit.
+    Each elevator has a "Figure of Suitability".
     If an elevator is moving towards a call, and the call is in the same direction,
     FS = (N + 2) - d, where N is one less than the number of floors in the building,
     and d is the distance in floors between the elevator and the passenger call.
