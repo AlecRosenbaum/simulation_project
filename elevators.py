@@ -110,6 +110,7 @@ class Elevator:
         if state is None:
             if self.state == self.States.IDLE:
                 # if theres someone to pick up
+                self.load()
                 self.next_dest = self.get_next_dest()
                 if self.next_dest is not None:
                     if self.next_dest == self.curr_floor:
@@ -332,6 +333,7 @@ class LookElevator(Elevator):
         elif recurse:
             if settings.VERBOSE:
                 print("changing directions, recursing")
+
             self.change_direction()
             return self.get_next_dest(recurse=False)
         else:
