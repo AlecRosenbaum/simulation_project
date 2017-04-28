@@ -354,7 +354,14 @@ class ControlledElevator(Elevator):
 
     def load(self):
         """load_passengers into the elevator"""
-        self._load_passengers(self)
+        # if elevator has no capacity, return
+        if not len(self.passengers) < self.capacity:
+            return
+
+        for i in self.curr_floor.queue[:self.rem_cap()]:
+            self._add_passenger(i[1])
+            self.destination_queue.append(i[1].destination)
+
 
     def get_next_dest(self):
         """Must be implemented by each algorithm subclass"""
@@ -404,10 +411,6 @@ class NearestCarElevatorController(ElevatorController):
         # remove current floor from destination queue
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
-
-        #we need to drop off passg
-        if len(elevator.passengers) is not 0:
-
 
         self.update_dests()
 
