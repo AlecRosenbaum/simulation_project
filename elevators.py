@@ -528,7 +528,7 @@ class FixedSectorsElevatorController(ElevatorController):
         self.elevators[5].sector = ["G", "1", "6", "8", "9"]
 
     def get_next_dest(self, elevator):
-
+        pass
 
 class FixedSectorsTimePriorityElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
