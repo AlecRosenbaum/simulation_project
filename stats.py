@@ -46,10 +46,13 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     service_vals = basic_data[idle_rows - 1, 2].astype(dtype=np.float32)
     queued_vals = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
 
+    # average wait time
+    avg_wait_time = np.mean(np.subtract(service_vals, queued_vals))
+    print("average wait time (seconds):", avg_wait_time, file=stats_file)
+
     # determine average time in system
     avg_tis = np.mean(np.subtract(idle_vals, queued_vals))
     print("average time in system (seconds):", avg_tis, file=stats_file)
-
 
     # time in system vs floors traveled
     tis_vs_floors = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
@@ -75,16 +78,27 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_travel_distance", "png"])))
 
 
+    # avg wait time vs. arrival time (arrival == queued time)
+    wait_time_vs_time = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
+    wait_time_vs_time[:, 0] = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
+    wait_time_vs_time[:, 1] = service_vals - queued_vals
+
+    x = wait_time_vs_time[:, 0]
+    y = wait_time_vs_time[:, 1]
+    plt.clf()
+    plt.scatter(x, y, s=2, lw=0)
+    plt.savefig(os.path.join(stats_dir, ".".join(["wait_time_vs_tod", "png"])))
+
     # avg time in system vs. arrival time (arrival == queued time)
     tis_vs_time = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
     tis_vs_time[:, 0] = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
-    tis_vs_time[:, 1] = service_vals - queued_vals
+    tis_vs_time[:, 1] = idle_vals - queued_vals
 
     x = tis_vs_time[:, 0]
     y = tis_vs_time[:, 1]
     plt.clf()
     plt.scatter(x, y, s=2, lw=0)
-    plt.savefig(os.path.join(stats_dir, ".".join(["wait_time_vs_tod", "png"])))
+    plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_tod", "png"])))
 
 
 if __name__ == '__main__':
