@@ -474,45 +474,6 @@ class NearestCarElevatorController(ElevatorController):
 
         return next_dest
 
-        # #if we have no closest call but have a closest passenger, go drop them off
-        # if closest_pass_dest is not None and closest_caller_dest is None:
-        #     return closest_pass_dest
-        # #if we have no closest passenger but have a closest call, go get them
-        # elif closest_pass_dest is None and closest_caller_dest is not None:
-        #     return closest_caller_dest
-        # #if we have both, we need to decide what to do
-        # elif closest_caller_dest is not None and closest_pass_dest is not None:
-        #     if (abs(elevator.curr_floor - closest_caller_dest) <
-        #             abs(elevator.curr_floor - closest_pass_dest)):
-        #         return closest_caller_dest
-        #     else:
-        #         return closest_pass_dest
-        # #otherwise, if we have neither, we need to see what happens when we change direction
-        # else:
-        #     if elevator.direction == "up":
-        #         elevator.direction = "down"
-        #     else:
-        #         elevator.direction = "up"
-
-        #     closest_pass_dest = self._find_closest_passenger
-        #     closest_caller_dest = self._find_closest_caller
-
-        #     #if we have no closest call but have a closest passenger, go drop them off
-        #     if closest_pass_dest is not None and closest_caller_dest is None:
-        #         return closest_pass_dest
-        #     #if we have no closest passenger but have a closest call, go get them
-        #     elif closest_pass_dest is None and closest_caller_dest is not None:
-        #         return closest_caller_dest
-        #     #if we have both, we need to decide what to do
-        #     elif closest_caller_dest is not None and closest_pass_dest is not None:
-        #         if (abs(elevator.curr_floor - closest_caller_dest)
-        #                 < abs(elevator.curr_floor - closest_pass_dest)):
-        #             return closest_caller_dest
-        #         else:
-        #             return closest_pass_dest
-        #     else:
-        #         return None
-
     def update_dests(self):
         """Update the destinations of all elevators based on calculated scores"""
         fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
@@ -704,8 +665,7 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                     continue
 
                 # base fs score
-                fos[idx] = (len(self._building.floor_order)
-                            + 1 - abs(arrival[2] - elevator.curr_floor))
+                fos[idx] = len(self._building.floor_order) + 1 - abs(arrival[2]-elevator.curr_floor)
 
                 # if the person is going in the opposite direction of the elevator, fs - 1
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
@@ -738,6 +698,7 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                     highest_wait_floor = destination
                     highest_wait_time = wait_time
         return highest_wait_floor
+
     #return the closest index in the queue of destinations, or None
     #if there is no destination in that direction
     def _find_highest_priority_caller(self, elevator):
@@ -823,9 +784,10 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                         closest = passenger.destination
         return closest
 
-    #return closest destination in the current direction in the current sector
     def get_next_dest(self, elevator, ch_dir=True):
-        #force idle elevators to service people who have been waiting too long
+        """return closest destination in the current direction in the current sector"""
+
+        # force idle elevators to service people who have been waiting too long
         if elevator.state is Elevator.States.IDLE:
             emergency_caller = self._find_emergency_caller(elevator)
             if emergency_caller is not None:
@@ -858,10 +820,7 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
         # if neither destinatione exists, change direction and try again
         if next_dest is None and ch_dir:
-            if elevator.direction == "up":
-                elevator.direction = "down"
-            else:
-                elevator.direction = "up"
+            elevator.change_direction()
 
             # prevent an infinite recursion by passing ch_dir=False
             return self.get_next_dest(elevator, ch_dir=False)
