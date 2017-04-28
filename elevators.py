@@ -358,8 +358,8 @@ class ElevatorController:
             num_elevators: number of elevators to spawn
             other: required and optional arguments pass to ControlledElevator constructor
         """
-        self.elevators.extend([ControlledElevator(self, *args, **kwargs)
-                               for _ in range(num_elevators)])
+        self.elevators.extend(
+            [ControlledElevator(self, *args, **kwargs)for _ in range(num_elevators)])
 
     def get_next_dest(self, elevator):
         """called by each controlled elevator, must be implemented by each subclass"""
@@ -374,7 +374,8 @@ class ControlledElevator(Elevator):
         self._controller = controller
         self.destination_queue = []
         self.direction = "up"
-        self.sector = None
+        self.down_sector = None
+        self.up_sector = None
         self.curr_floor = self._building.floor['SB']
 
     def load(self):
@@ -489,50 +490,17 @@ class FixedSectorsElevatorController(ElevatorController):
         #self.elevators[4].sector = ["SB", "B", "1", "G"]
         #self.elevators[5].sector = ["G", "1", "6", "8", "9"]
 
-    def update_dests(self):
-        """Update the destinations of all elevators based on sectors"""
-        fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
-        for arrival in self._building.all_arrivals:
-            for idx, elevator in enumerate(self.elevators):
-                # FS = 0 if call outside sector
-                if arrival[2] not in elevator.sectors:
-                    fos[idx] = 0
-                    continue
-
-                # FS = 1 if elevator isn't moving towards the call
-                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
-                    fos[idx] = 1
-                    continue
-
-                # base fs score
-                fos[idx] = (len(self._building.floor_order)
-                            + 1 - abs(arrival[2] - elevator.curr_floor))
-
-                # if the person is going in the opposite direction of the elevator, fs - 1
-                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
-                    fos[idx] -= 1
-
-            #find the greatest figure of suitability for this arrival
-            max_idx = fos.index(max(fos))
-
-            #add this floor to the destination queue of the best elevator
-            self.elevators[max_idx].destination_queue.append(arrival[2])
-
-            self._building.remove(arrival) #we're finished with this arrival
-
     #return the closest index in the queue of destinations, or None
     #if there is no destination in that direction
     def _find_closest_caller(self, elevator):
         shortest = None
         for destination in elevator.destination_queue:
             if elevator.direction == "up":
-                #make sure it's only to the serviced sectors
-                if destination.name in elevator.sector:
-                    if destination > elevator.curr_floor:
-                        if shortest is None:
-                            shortest = destination
-                        elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
-                            shortest = destination
+                if destination > elevator.curr_floor:
+                    if shortest is None:
+                        shortest = destination
+                    elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
+                        shortest = destination
             else:
                 if destination < elevator.curr_floor:
                     if shortest is None:
@@ -560,19 +528,29 @@ class FixedSectorsElevatorController(ElevatorController):
                         closest = passenger.destination
         return closest
 
-    #return closest destination in the current direction in the current sector
+    #return the closest destination in the current direction
     def get_next_dest(self, elevator, ch_dir=True):
-        #remove current floor from destination queue
+        # remove current floor from destination queue
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
+
         self.update_dests()
 
+        # find the closest passenger destination in the same direction
+        closest_pass_dest = min(
+            [i.destination for i
+             in elevator.passengers
+             if elevator.curr_floor.dir_to(i.destination) == elevator.direction],
+            key=lambda x: abs(x - elevator.curr_floor),
+            default=None)
 
-        # check if theres a passenger destination coming up
-        # floor where a passenger is going that is determined to be closest
-        # (and in the right direction)
-        closest_pass_dest = self._find_closest_passenger(elevator)
-        closest_caller_dest = self._find_closest_caller(elevator)
+        # find the closest pickup in the pickup queue
+        closest_caller_dest = min(
+            [i for i
+             in elevator.destination_queue
+             if elevator.curr_floor.dir_to(i) == elevator.direction],
+            key=lambda x: abs(x - elevator.curr_floor),
+            default=None)
 
         # get the closest destination (or None if neither destination exists)
         next_dest = min(
@@ -582,16 +560,82 @@ class FixedSectorsElevatorController(ElevatorController):
 
         # if neither destinatione exists, change direction and try again
         if next_dest is None and ch_dir:
-            if elevator.direction == "up":
-                elevator.direction = "down"
-            else:
-                elevator.direction = "up"
+            elevator.change_direction()
 
             # prevent an infinite recursion by passing ch_dir=False
             return self.get_next_dest(elevator, ch_dir=False)
 
         return next_dest
 
+    def update_dests(self):
+        """Update the destinations of all elevators based on calculated scores"""
+        fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
+        for arrival in self._building.all_arrivals:
+            for idx, elevator in enumerate(self.elevators):
+                # FS = 1 if elevator isn't moving towards the call
+                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
+                    fos[idx] = 1
+                    continue
+
+                # base fs score
+                fos[idx] = (len(self._building.floor_order)
+                            + 1 - abs(arrival[2] - elevator.curr_floor))
+
+                # if the person is going in the opposite direction of the elevator, fs - 1
+                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
+                    fos[idx] -= 1
+
+                min_up_sec = min(elevator.up_sector)
+                max_up_sec = max(elevator.up_sector)
+                min_down_sec = min(elevator.down_sector)
+                max_down_sec = max(elevator.down_sector)
+                arr_floor = arrival[2]
+
+                if arr_floor.name == "SB":
+                    arr_floor = -2
+                elif arr_floor.name == "B":
+                    arr_floor = -1
+                elif arr_floor.name == "G":
+                    arr_floor = 0
+                else:
+                    arr_floor = int(arr_floor.name)
+
+                p_dest = arrival[1].destination.name
+
+                if p_dest == "SB":
+                    p_dest = -2
+                elif p_dest == "B":
+                    p_dest = -1
+                elif p_dest == "G":
+                    p_dest = 0
+                else:
+                    p_dest = int(p_dest)
+
+
+
+                denom = 0
+                if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec
+                         and p_dest >= arr_floor)
+                        or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
+                            and p_dest <= arr_floor)):
+                    if not (arr_floor >= min_up_sec and arr_floor <= max_up_sec
+                            and p_dest >= arr_floor):
+                        #if we're going up and we're outisde the up sector
+                        denom = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
+                    else:
+                        #if we're going down and we're outisde the down sector
+                        denom = min(abs(arr_floor-min_down_sec),
+                                            abs(arr_floor-max_down_sec))
+                    if not denom is 0:
+                        fos[idx] = fos[idx]/denom
+
+            #find the greatest figure of suitability for this arrival
+            max_idx = fos.index(max(fos))
+
+            #add this floor to the destination queue of the best elevator
+            self.elevators[max_idx].destination_queue.append(arrival[2])
+
+            self._building.remove(arrival) #we're finished with this arrival
 
 
 class FixedSectorsTimePriorityElevatorController(ElevatorController):
