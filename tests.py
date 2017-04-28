@@ -9,12 +9,21 @@ import logger
 
 import stats as sim_stats
 
-def test_scan_elevator():
+BASE_DIR = "experiments"
+
+def test_scan_elevator(limit=None):
     """method that tests the scan elevator"""
+
+    result_dir = "scan"
+
+    # create directory if not existing
+    dirs = os.path.join(BASE_DIR, result_dir)
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
 
     # create loggers
     person_logger = logger.PersonLogger(
-        os.path.join(settings.LOG_DIR, settings.PERSON_LOG_FNAME), remove_old=True)
+        os.path.join(dirs, settings.LOG_DIR, settings.PERSON_LOG_FNAME), remove_old=True)
     # create building
     building = Building([
         'SB', 'B', 'G', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',])
@@ -23,7 +32,7 @@ def test_scan_elevator():
     arr_gen = ArrivalGenerator(building=building, person_logger=person_logger)
 
     # load saved arrivals or generate new arrivals
-    save_path = os.path.join(settings.ARRIVALS_DIR, "test_arrivals.csv")
+    save_path = os.path.join(settings.ARRIVALS_DIR, "arrivals.csv")
     if not os.path.exists(save_path):
         arr_gen.gen_from_classes(file_path=settings.ARRIVALS_DATA_SET_CSV)
         arr_gen.save(save_path)
@@ -34,7 +43,7 @@ def test_scan_elevator():
     cnt = 0
     for time, person in arr_gen.arrival_times:
         cnt += 1
-        if cnt > 100:
+        if limit is not None and cnt > limit:
             break
         settings.FEQ.put_nowait((time, person, person.States.QUEUED))
 
@@ -45,6 +54,12 @@ def test_scan_elevator():
         curr_time, obj, state = settings.FEQ.get_nowait()
         settings.CURR_TIME = curr_time
         obj.update_state(state)
+
+    for i in settings.ELEVATORS:
+        print(i)
+    for i in building.floor_order:
+        print(i, building.floor[i].queue[:min(5, len(building.floor[i].queue))])
+    print("------------------------------")
 
     # commit changes to person_logger
     person_logger.conn.commit()
@@ -259,8 +274,8 @@ def test_sector_time_elevator():
     sim_stats.run_stats()
 
 if __name__ == '__main__':
-    #test_scan_elevator()
+    test_scan_elevator()
     #test_look_elevator()
     #test_nearest_elevator()
     #test_sector_elevator()
-    test_sector_time_elevator()
+    # test_sector_time_elevator()

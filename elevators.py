@@ -27,6 +27,7 @@ class Elevator:
         self.passengers = []
         self.next_dest = None
         self.sectors = []
+        self.direction = None
 
         self.__class__.elevator_cnt += 1
 
@@ -177,12 +178,20 @@ class Elevator:
         """returns the remaining capacity of the elevator"""
         return self.capacity - len(self.passengers)
 
+    def change_direction(self):
+        """change directions"""
+        if self.direction == "up":
+            self.direction = "down"
+        else:
+            self.direction = "up"
+
     def __str__(self):
-        return "Elevator[{}, {}, {} -> {}, {}]".format(
+        return "Elevator[{}, {}, {} -> {} ({}), {}]".format(
             self.id,
             self.state,
             self.curr_floor,
             self.next_dest,
+            self.direction,
             self.passengers)
 
     def __lt__(self, cmp):
@@ -243,29 +252,45 @@ class ScanElevator(Elevator):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.direction = "up"
 
-    def get_next_dest(self):
+    def get_next_dest(self, recurse=True):
         max_index = len(self._building.floor_order)-1
         current_floor_index = self._building.floor_order.index(self.curr_floor.name)
-        print("Current Floor: ", self.curr_floor.name)
+        if settings.VERBOSE:
+            print("Current Floor: ", self.curr_floor.name)
 
-        if self.direction is "up" and current_floor_index is not max_index:
-            name = self._building.floor_order[current_floor_index+1]
-            return self._building.floor[name]
-        elif self.direction is "up" and current_floor_index is max_index:
-            self.direction = "down"
-            name = self._building.floor_order[current_floor_index-1]
-            return self._building.floor[name]
-        elif self.direction is "down" and current_floor_index is not 0:
-            name = self._building.floor_order[current_floor_index-1]
-            return self._building.floor[name]
-        elif self.direction is "down" and current_floor_index is 0:
-            self.direction = "up"
-            name = self._building.floor_order[1]
-            return self._building.floor[name]
+        # return to idle if no passengers are waiting and there are no more arrivals
+        if (sum([len(i.queue) for i in self._building.floor.values()]) == 0 and
+                settings.FEQ.qsize() == 0 and len(self.passengers) == 0):
+            return None
+
+        # if at the edge swap directions
+        if current_floor_index == max_index or current_floor_index == 0:
+            self.change_direction()
+
+        # get the next destination in that direction
+        # passenger pickup locations in the same direction
+        pickup_loc = [
+            i.origin for floor in self._building.floor_order
+            for _, i in self._building.floor[floor].queue
+            if self.curr_floor.dir_to(i.origin) == self.direction]
+        # passenger dropoff locations in the same direction
+        dropoff_loc = [
+            i.destination for i in self.passengers
+            if self.curr_floor.dir_to(i.destination) == self.direction]
+
+        if len(pickup_loc + dropoff_loc) > 0:
+            return min(pickup_loc + dropoff_loc, key=lambda x: abs(self.curr_floor - x))
+        elif recurse:
+            if settings.VERBOSE:
+                print("changing directions, recursing")
+            self.change_direction()
+            return self.get_next_dest(recurse=False)
+        else:
+            return None
 
     def load(self):
         """load all the passengers at current floor"""
-        self._load_passengers(None, "up")
+        self._load_passengers()
 
 class LookElevator(Elevator):
     """
