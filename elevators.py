@@ -148,7 +148,8 @@ class Elevator:
         elif self.state == self.States.MOVING:
             # determing how long until next destination is reached, add event to feq
             settings.FEQ.put_nowait((
-                settings.CURR_TIME + 1 + settings.ELEVATOR_SPEED*abs(self.next_dest-self.curr_floor),
+                settings.CURR_TIME + 1
+                + settings.ELEVATOR_SPEED*abs(self.next_dest-self.curr_floor),
                 self,
                 self.States.STOPPED))
 
@@ -372,7 +373,8 @@ class ElevatorController:
             num_elevators: number of elevators to spawn
             other: required and optional arguments pass to ControlledElevator constructor
         """
-        self.elevators.extend([ControlledElevator(self, *args, **kwargs) for _ in range(num_elevators)])
+        self.elevators.extend([ControlledElevator(self, *args, **kwargs)
+                               for _ in range(num_elevators)])
 
     def get_next_dest(self, elevator):
         """called by each controlled elevator, must be implemented by each subclass"""
@@ -742,10 +744,12 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                 arrival_time = first_person[0]
                 wait_time = settings.CURR_TIME - arrival_time
                 #if we've exceeded max_wait, we should go there
-                if wait_time > settings.SUPER_MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                if (wait_time > settings.SUPER_MAX_WAIT and wait_time
+                        > highest_wait_time and destination.name is not highest_wait_floor):
                     print("Current time: ", settings.CURR_TIME)
-                    s = "NEW EMERGENCY DEST: Floor " + destination.name +": Person has waited: " + repr(wait_time)
-                    print(s)
+                    emer = ("NEW EMERGENCY DEST: Floor " + destination.name
+                            + ": Person has waited: " + repr(wait_time))
+                    print(emer)
                     highest_wait_floor = destination
                     highest_wait_time = wait_time
         return highest_wait_floor
@@ -765,10 +769,12 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                         arrival_time = first_person[0]
                         wait_time = settings.CURR_TIME - arrival_time
                         #if we've exceeded max_wait, we should go there
-                        if wait_time > settings.MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                        if (wait_time > settings.MAX_WAIT and wait_time > highest_wait_time
+                                and destination.name is not highest_wait_floor):
                             print("Current time: ", settings.CURR_TIME)
-                            s = "NEW PRIORITY DEST: Floor " + destination.name +": Person has waited: " + repr(wait_time)
-                            print(s)
+                            priority = ("NEW PRIORITY DEST: Floor " + destination.name
+                                        + ": Person has waited: " + repr(wait_time))
+                            print(priority)
                             highest_wait_floor = destination
                             highest_wait_time = wait_time
                             continue
@@ -778,7 +784,8 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                             if destination.name in elevator.sector:
                                 if shortest is None:
                                     shortest = destination
-                                elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
+                                elif (destination - elevator.curr_floor
+                                      < shortest - elevator.curr_floor):
                                     shortest = destination
             #else if elevator is doing down
             else:
@@ -790,10 +797,12 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                         arrival_time = first_person[0]
                         wait_time = settings.CURR_TIME - arrival_time
                         #if we've exceeded max_wait, we should go there
-                        if wait_time > settings.MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                        if (wait_time > settings.MAX_WAIT and wait_time > highest_wait_time
+                                and destination.name is not highest_wait_floor):
                             print("Current time: ", settings.CURR_TIME)
-                            s = "NEW PRIORITY DEST: Floor " + destination.name +": Person has waited: " + repr(wait_time)
-                            print(s)
+                            priority = ("NEW PRIORITY DEST: Floor " + destination.name
+                                        + ": Person has waited: " + repr(wait_time))
+                            print(priority)
                             highest_wait_floor = destination
                             highest_wait_time = wait_time
                             continue
@@ -803,7 +812,8 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                             if destination.name in elevator.sector:
                                 if shortest is None:
                                     shortest = destination
-                                elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
+                                elif (elevator.curr_floor - destination
+                                      < elevator.curr_floor - shortest):
                                     shortest = destination
         if highest_wait_floor is not None:
             shortest = highest_wait_floor
