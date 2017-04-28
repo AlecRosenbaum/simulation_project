@@ -434,13 +434,6 @@ class NearestCarElevatorController(ElevatorController):
             #find the closest caller in our direction
             closest_caller_dest = self._find_closest_caller(elevator) #floor of the closest call in our direction
 
-            if closest_caller_dest is None:
-                if elevator.direction == "up":
-                    elevator.direction = "down"
-                else:
-                    elevator.direction = "up"
-                shortest = self._find_shortest(elevator)
-
         #if we have no closest call but have a closest passenger, go drop them off
         if closest_pass_dest is not None and closest_caller_dest is None:
             return closest_pass_dest
