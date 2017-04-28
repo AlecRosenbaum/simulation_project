@@ -28,9 +28,15 @@ GROUP BY FLOORS_TRAVELED
 WAIT_TIME_VS_TOD_STMT = """
 SELECT 
     EVENT_TIME,
-    (SELECT EVENT_TIME FROM PERSON_LOGS B WHERE A.PERSON_ID = B.PERSON_ID AND B.STATE == "States.IDLE" LIMIT 1) - A.EVENT_TIME AS WAIT_TIME
+    (SELECT EVENT_TIME FROM PERSON_LOGS B WHERE A.PERSON_ID = B.PERSON_ID AND B.STATE == "States.SERVICE" LIMIT 1) - A.EVENT_TIME AS WAIT_TIME
 FROM PERSON_LOGS A
 WHERE A.STATE = "States.QUEUED"
+"""
+
+BASIC_ORDERED_STMT = """
+    SELECT EVENT_DAY, PERSON_ID, EVENT_TIME, STATE, ELEVATOR_ID, ORIGIN, DEST
+    FROM 'PERSON_LOGS' 
+    ORDER BY EVENT_DAY, PERSON_ID, EVENT_TIME 
 """
 
 
@@ -56,25 +62,51 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     else:
         raise LookupError("Person Log database doesn't exist")
 
+    # fetch basic data (used for multiple things)
+    person_cur.execute(BASIC_ORDERED_STMT)
+    basic_data = np.array(person_cur.fetchall())
+
+    idle_rows = np.where(basic_data[:, 3] == "States.IDLE")[0]
+    idle_vals = basic_data[idle_rows, 2].astype(dtype=np.float32)
+    service_vals = basic_data[idle_rows - 1, 2].astype(dtype=np.float32)
+    queued_vals = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
+
     # determine average time in system
-    person_cur.execute(AVG_TIME_IN_SYS_STMT)
-    avg_time_in_system = person_cur.fetchall()[0][0]
-    print("average wait time (seconds):", avg_time_in_system, file=stats_file)
+    avg_tis = np.mean(np.subtract(idle_vals, queued_vals))
+    print("average time in system (seconds):", avg_tis, file=stats_file)
+
 
     # time in system vs floors traveled
-    person_cur.execute(TIME_IN_SYS_VS_FLOORS_TRAVELED_STMT)
-    avg_time_in_system_data = person_cur.fetchall()
+    tis_vs_floors = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
+    tis_vs_floors[:, 1] = idle_vals - queued_vals
+    dest = basic_data[idle_rows, 6].astype(dtype=np.int32)
+    origin = basic_data[idle_rows, 5].astype(dtype=np.int32)
+    tis_vs_floors[:, 0] = np.absolute(dest - origin)
 
-    x, y = zip(*avg_time_in_system_data)
+    # find the average for each floor delta
+    tis_vs_floors = tis_vs_floors[tis_vs_floors[:, 0].argsort()]
+    floor_diff_data = np.split(
+        tis_vs_floors,
+        np.where(np.diff(tis_vs_floors[:, 0]))[0]+1)
+
+    x = []
+    y = []
+    for i in floor_diff_data:
+        x.append(i[0, 0])
+        y.append(np.mean(i[:, 1]))
+
     plt.clf()
     plt.plot(x, y, color='r', linestyle='-')
     plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_travel_distance", "png"])))
 
-    # avg wait time vs. arrival time
-    person_cur.execute(WAIT_TIME_VS_TOD_STMT)
-    wait_time_vs_tod = person_cur.fetchall()
 
-    x, y = zip(*wait_time_vs_tod)
+    # avg time in system vs. arrival time (arrival == queued time)
+    tis_vs_time = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
+    tis_vs_time[:, 0] = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
+    tis_vs_time[:, 1] = service_vals - queued_vals
+
+    x = tis_vs_time[:, 0]
+    y = tis_vs_time[:, 1]
     plt.clf()
     plt.scatter(x, y, s=2, lw=0)
     plt.savefig(os.path.join(stats_dir, ".".join(["wait_time_vs_tod", "png"])))
