@@ -664,6 +664,107 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
+        #NOTE: SECTORS MOVED TO BEING SET IN TEST/CALL FILE
 
-    def get_next_dest(self, elevator):
-        pass
+    def update_dests(self):
+        """Update the destinations of all elevators based on sectors"""
+        fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
+        for arrival in self._building.all_arrivals:
+            for idx, elevator in enumerate(self.elevators):
+                # FS = 0 if call outside sector
+                if arrival[2] not in elevator.sectors:
+                    fos[idx] = 0
+                    continue
+
+                # FS = 1 if elevator isn't moving towards the call
+                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
+                    fos[idx] = 1
+                    continue
+
+                # base fs score
+                fos[idx] = (len(self._building.floor_order)
+                            + 1 - abs(arrival[2] - elevator.curr_floor))
+
+                # if the person is going in the opposite direction of the elevator, fs - 1
+                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
+                    fos[idx] -= 1
+
+            #find the greatest figure of suitability for this arrival
+            max_idx = fos.index(max(fos))
+
+            #add this floor to the destination queue of the best elevator
+            self.elevators[max_idx].destination_queue.append(arrival[2])
+
+            self._building.remove(arrival) #we're finished with this arrival
+
+    #return the closest index in the queue of destinations, or None
+    #if there is no destination in that direction
+    def _find_closest_caller(self, elevator):
+        shortest = None
+        for destination in elevator.destination_queue:
+            if elevator.direction == "up":
+                #make sure it's only to the serviced sectors
+                if destination.name in elevator.sector:
+                    if destination > elevator.curr_floor:
+                        if shortest is None:
+                            shortest = destination
+                        elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
+                            shortest = destination
+            else:
+                if destination < elevator.curr_floor:
+                    if shortest is None:
+                        shortest = destination
+                    elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
+                        shortest = destination
+        return shortest
+
+    def _find_closest_passenger(self, elevator):
+        closest = None
+        for passenger in elevator.passengers:
+            if elevator.direction == "up":
+                if passenger.destination > elevator.curr_floor:
+                    if closest is None:
+                        closest = passenger.destination
+                    elif (passenger.destination - elevator.curr_floor
+                          < closest - elevator.curr_floor):
+                        closest = passenger.destination
+            else:
+                if passenger.destination < elevator.curr_floor:
+                    if closest is None:
+                        closest = passenger.destination
+                    elif (elevator.curr_floor - passenger.destination
+                          < elevator.curr_floor - closest):
+                        closest = passenger.destination
+        return closest
+
+    #return closest destination in the current direction in the current sector
+    def get_next_dest(self, elevator, ch_dir=True):
+        #remove current floor from destination queue
+        if elevator.curr_floor in elevator.destination_queue:
+            elevator.destination_queue.remove(elevator.curr_floor)
+        self.update_dests()
+
+
+        # check if theres a passenger destination coming up
+        # floor where a passenger is going that is determined to be closest
+        # (and in the right direction)
+        closest_pass_dest = self._find_closest_passenger(elevator)
+        closest_caller_dest = self._find_closest_caller(elevator)
+
+        # get the closest destination (or None if neither destination exists)
+        next_dest = min(
+            [i for i in [closest_pass_dest, closest_caller_dest] if i is not None],
+            key=lambda x: abs(elevator.curr_floor - x),
+            default=None)
+
+        # if neither destinatione exists, change direction and try again
+        if next_dest is None and ch_dir:
+            if elevator.direction == "up":
+                elevator.direction = "down"
+            else:
+                elevator.direction = "up"
+
+            # prevent an infinite recursion by passing ch_dir=False
+            return self.get_next_dest(elevator, ch_dir=False)
+
+        return next_dest
