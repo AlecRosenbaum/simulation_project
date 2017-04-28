@@ -252,6 +252,54 @@ class ScanElevator(Elevator):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.direction = "up"
 
+    def get_next_dest(self):
+        max_index = len(self._building.floor_order)-1
+        current_floor_index = self._building.floor_order.index(self.curr_floor.name)
+        if settings.VERBOSE:
+            print("Current Floor: ", self.curr_floor.name)
+
+        # go to idle if no passengers and no one waitin
+        if (sum([len(i.queue) for i in self._building.floor.values()]) == 0
+                and len(self.passengers) == 0):
+            return None
+
+        # if at the edge swap directions
+        if current_floor_index == max_index or current_floor_index == 0:
+            self.change_direction()
+
+        # get the next destination in that direction
+        # passenger pickup locations in the same direction
+        pickup_loc = [
+            i.origin for floor in self._building.floor_order
+            for _, i in self._building.floor[floor].queue
+            if self.curr_floor.dir_to(i.origin) == self.direction]
+        # passenger dropoff locations in the same direction
+        dropoff_loc = [
+            i.destination for i in self.passengers
+            if self.curr_floor.dir_to(i.destination) == self.direction]
+
+        if len(pickup_loc + dropoff_loc) > 0:
+            return min(pickup_loc + dropoff_loc, key=lambda x: abs(self.curr_floor - x))
+        else:
+            if self.direction == "up":
+                # return top floor
+                return self._building.floor[self._building.floor_order[-1]]
+            else:
+                # return bottom floor
+                return self._building.floor[self._building.floor_order[0]]
+
+    def load(self):
+        """load all the passengers at current floor"""
+        self._load_passengers()
+
+class LookElevator(Elevator):
+    """
+    This elevator travels up/down as far as the highest destination/arrival.
+    """
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.direction = "up"
+
     def get_next_dest(self, recurse=True):
         max_index = len(self._building.floor_order)-1
         current_floor_index = self._building.floor_order.index(self.curr_floor.name)
@@ -291,69 +339,6 @@ class ScanElevator(Elevator):
     def load(self):
         """load all the passengers at current floor"""
         self._load_passengers()
-
-class LookElevator(Elevator):
-    """
-    This elevator travels up/down as far as the highest destination/arrival.
-    """
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
-        self.direction = "up"
-        self.destination_queue = []
-
-    def get_next_dest(self):
-        max_index = len(self._building.floor_order)-1
-        current_floor_index = self._building.floor_order.index(self.curr_floor.name)
-        print("Current Floor: ", self.curr_floor.name)
-
-        #if we're going up and we aren't at the top floor
-        if self.direction is "up" and current_floor_index is not max_index:
-            #need to find the highest destination
-            max_dest = 0
-            #TO-DO: Not look at all_arrivals but instead at
-                #The current people on-board and where they want to go
-                #AND the requests to go down from the current loc
-            for tim, idx, i in self._building.all_arrivals:  #(time, person, floor)
-                if i > self._building.all_arrivals[max_dest][2]:
-                    max_dest = idx
-
-            #if we're still below the highest destination, keep going up
-            if current_floor_index < max_dest:
-                name = self._building.floor_order[current_floor_index+1]
-                return self._building.floor[name]
-            #otherwise, go down
-            else:
-                self.direction = "down"
-                name = self._building.floor_order[current_floor_index-1]
-                return self._building.floor[name]
-                #if we're going up and we're at the top floor, we need to go down
-        elif self.direction is "up" and current_floor_index is max_dest:
-            self.direction = "down"
-            return self._building.floor_order[-1] - 1
-        #if we're going down and we aren't at the bottom floor
-        elif self.direction is "down" and current_floor_index is not 0:
-            #need to find the lowest destionation
-            min_dest = 0
-            for tim, idx, i in self._building.all_arrivals:
-                if i < self._building.all_arrivals[min_dest][2]: #(time, person, floor)
-                    min_dest = idx
-            #if we're still above the lowest destination, keep going down
-            if current_floor_index > 0:
-                name = self._building.floor_order[current_floor_index-1]
-                return self._building.floor[name]
-            #otherwise, go up
-            else:
-                self.direction = "up"
-                name = self._building.floor_order[1]
-                return self._building.floor[name]
-        #if we're going down and we're at the bottom floow, we need to go up
-        elif self.direction is "down" and current_floor_index is 0:
-            self.direction = "up"
-            return self._building.floor_order[1]
-
-    def load(self):
-        """load all the passengers at current floor"""
-        self._load_passengers(None, "up")
 
 
 # MULTI-ELEVATOR ALGORITHMS
