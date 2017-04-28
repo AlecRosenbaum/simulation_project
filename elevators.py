@@ -547,7 +547,7 @@ class FixedSectorsElevatorController(ElevatorController):
 
     def update_dests(self):
         """Update the destinations of all elevators based on sectors"""
-        fos = [] #figures of suitability for each elevator
+        fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
         for arrival in self._building.all_arrivals:
             for idx, elevator in enumerate(self.elevators):
                 # FS = 0 if call outside sector
@@ -583,7 +583,7 @@ class FixedSectorsElevatorController(ElevatorController):
         for destination in elevator.destination_queue:
             if elevator.direction == "up":
                 #make sure it's only to the serviced sectors
-                if destination in elevator.sector:
+                if destination.name in elevator.sector:
                     if destination > elevator.curr_floor:
                         if shortest is None:
                             shortest = destination
