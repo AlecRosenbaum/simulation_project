@@ -699,23 +699,61 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
     #return the closest index in the queue of destinations, or None
     #if there is no destination in that direction
-    def _find_closest_caller(self, elevator):
+    def _find_highest_priority_caller(self, elevator):
+        print("Current time: ", settings.CURR_TIME)
         shortest = None
+        highest_wait_floor = None
+        highest_wait_time = 0
         for destination in elevator.destination_queue:
             if elevator.direction == "up":
-                #make sure it's only to the serviced sectors
-                if destination.name in elevator.sector:
-                    if destination > elevator.curr_floor:
-                        if shortest is None:
-                            shortest = destination
-                        elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
-                            shortest = destination
+                #only do these checks for the destinations that are above the current floor
+                if destination > elevator.curr_floor:
+                    #if the queue for that floor is not empty
+                    if destination.queue:
+                        first_person = destination.queue[0]
+                        arrival_time = first_person[0]
+                        wait_time = settings.CURR_TIME - arrival_time
+                        s = "Floor " + destination.name +": Person has waited: " + repr(wait_time)
+                        print(s)
+                        #if we've exceeded max_wait, we should go there
+                        if wait_time > settings.MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                            highest_wait_floor = destination
+                            highest_wait_time = wait_time
+                            continue
+                        #if we haven't exceeded max_wait
+                        else:
+                            #highest priority to floors within sector
+                            if destination.name in elevator.sector:
+                                if shortest is None:
+                                    shortest = destination
+                                elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
+                                    shortest = destination
+            #else if elevator is doing down
             else:
+                #only do these checks for the destinations that are below current floor
                 if destination < elevator.curr_floor:
-                    if shortest is None:
-                        shortest = destination
-                    elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
-                        shortest = destination
+                    #if the queue for that floor is not empty
+                    if destination.queue:
+                        first_person = destination.queue[0]
+                        arrival_time = first_person[0]
+                        wait_time = settings.CURR_TIME - arrival_time
+                        s = "Floor " + destination.name +":First person has waited: " + repr(wait_time)
+                        print(s)
+                        #if we've exceeded max_wait, we should go there
+                        if wait_time > settings.MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                            highest_wait_floor = destination
+                            highest_wait_time = wait_time
+                            continue
+                        #if we haven't exceeded max_wait
+                        else:
+                            #highest priority to floors within sector
+                            if destination.name in elevator.sector:
+                                if shortest is None:
+                                    shortest = destination
+                                elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
+                                    shortest = destination
+        if highest_wait_floor is not None:
+            shortest = highest_wait_floor
         return shortest
 
     def _find_closest_passenger(self, elevator):
@@ -749,7 +787,7 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
         # floor where a passenger is going that is determined to be closest
         # (and in the right direction)
         closest_pass_dest = self._find_closest_passenger(elevator)
-        closest_caller_dest = self._find_closest_caller(elevator)
+        closest_caller_dest = self._find_highest_priority_caller(elevator)
 
         # get the closest destination (or None if neither destination exists)
         next_dest = min(
