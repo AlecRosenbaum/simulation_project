@@ -655,7 +655,7 @@ class FixedSectorsElevatorController(ElevatorController):
 
                 if arr_floor == "SB":
                     arr_floor = -2
-                elif arr_for == "B":
+                elif arr_floor == "B":
                     arr_floor = -1
                 elif arr_floor == "G":
                     arr_floor = 0
