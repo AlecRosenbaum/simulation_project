@@ -636,13 +636,21 @@ class FixedSectorsElevatorController(ElevatorController):
                 else:
                     p_dest = int(p_dest)
 
-                min_up_dist = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
-                min_down_dist = min(abs(arr_floor-min_down_sec), abs(arr_floor-max_down_sec))
 
-                if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec and p_dest >= arr_floor)
+
+                denom = 0
+                if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec
+                         and p_dest >= arr_floor)
                         or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
                             and p_dest <= arr_floor)):
-                    denom = min(min_up_dist, min_down_dist)
+                    if not (arr_floor >= min_up_sec and arr_floor <= max_up_sec
+                            and p_dest >= arr_floor):
+                        #if we're going up and we're outisde the up sector
+                        denom = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
+                    else:
+                        #if we're going down and we're outisde the down sector
+                        denom = min(abs(arr_floor-min_down_sec),
+                                            abs(arr_floor-max_down_sec))
                     if not denom is 0:
                         fos[idx] = fos[idx]/denom
 
