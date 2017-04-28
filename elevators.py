@@ -647,8 +647,6 @@ class FixedSectorsElevatorController(ElevatorController):
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
                     fos[idx] -= 1
 
-                print(elevator.up_sector)
-
                 min_up_sec = min(elevator.up_sector)
                 max_up_sec = max(elevator.up_sector)
                 min_down_sec = min(elevator.down_sector)
@@ -664,7 +662,7 @@ class FixedSectorsElevatorController(ElevatorController):
                 else:
                     arr_floor = int(arr_floor.name)
 
-                p_dest = arrival[2]
+                p_dest = arrival[1].destination
 
                 min_up_dist = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
                 min_down_dist = min(abs(arr_floor-min_down_sec), abs(arr_floor-max_down_sec))
