@@ -652,6 +652,16 @@ class FixedSectorsElevatorController(ElevatorController):
                 min_down_sec = min(elevator.down_sector)
                 max_down_sec = max(elevator.down_sector)
                 arr_floor = arrival[2]
+
+                if arr_floor == "SB":
+                    arr_floor = -2
+                elif arr_for == "B":
+                    arr_floor = -1
+                elif arr_floor == "G":
+                    arr_floor = 0
+                else:
+                    int(arr_floor)
+
                 p_dest = arrival[1]
 
                 min_up_dist = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
