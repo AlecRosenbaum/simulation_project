@@ -132,19 +132,24 @@ def test_nearest_elevator():
         settings.CURR_TIME = curr_time
         obj.update_state(state)
 
-        # # print system state
-        # for i in settings.ELEVATORS:
-        #     print(i)
-        # for i in building.floor_order:
-        #     print(i, building.floor[i].queue)
-        # print("------------------------------")
+         # print system state
+        for i in settings.ELEVATORS:
+            print(i)
+        for i in building.floor_order:
+            print(i, building.floor[i].queue)
+        print("------------------------------")
 
     # commit changes to person_logger
     person_logger.conn.commit()
 
     sim_stats.run_stats()
 
+def test_sector_elevator():
+    "test for testing fixed sector algorithm"
+    pass
+
 if __name__ == '__main__':
     #test_scan_elevator()
-    test_look_elevator()
+    #test_look_elevator()
     test_nearest_elevator()
+    test_sector_elevator()

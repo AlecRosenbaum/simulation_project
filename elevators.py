@@ -543,7 +543,7 @@ class FixedSectorsElevatorController(NearestCarElevatorController):
         self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
         self.elevators[4].sector = ["SB", "B", "1", "G"]
         self.elevators[5].sector = ["G", "1", "6", "8", "9"]
-    
+
     def update_dests(self):
         """Update the destinations of all elevators based on sectors"""
         fos = [] #figures of suitability for each elevator
@@ -574,7 +574,81 @@ class FixedSectorsElevatorController(NearestCarElevatorController):
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
             self._building.remove(arrival) #we're finished with this arrival
-            
+
+    #return the closest index in the queue of destinations, or None
+    #if there is no destination in that direction
+    def _find_closest_caller(self, elevator):
+        shortest = None
+        for destination in elevator.destination_queue:
+            if elevator.direction == "up":
+                #make sure it's only to the serviced passengers
+                if destination in elevator.sector:
+                    if destination > elevator.curr_floor:
+                        if shortest is None:
+                            shortest = destination
+                        elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
+                            shortest = destination
+            else:
+                if destination < elevator.curr_floor:
+                    if shortest is None:
+                        shortest = destination
+                    elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
+                        shortest = destination
+        return shortest
+
+    def _find_closest_passenger(self, elevator):
+        closest = None
+        for passenger in elevator.passengers:
+            if elevator.direction == "up":
+                if passenger.destination > elevator.curr_floor:
+                    if closest is None:
+                        closest = passenger.destination
+                    elif (passenger.destination - elevator.curr_floor
+                          < closest - elevator.curr_floor):
+                        closest = passenger.destination
+            else:
+                if passenger.destination < elevator.curr_floor:
+                    if closest is None:
+                        closest = passenger.destination
+                    elif (elevator.curr_floor - passenger.destination
+                          < elevator.curr_floor - closest):
+                        closest = passenger.destination
+        return closest
+
+    #return closest destination in the current direction in the current sector
+    def get_next_dest(self, elevator, ch_dir=True):
+        #remove current floor from destination queue
+        if elevator.curr_floor in elevator.desintation_queue:
+            elevator.destination_queue.remove(elevator.curr_floor)
+        self.update_dests()
+
+
+        # check if theres a passenger destination coming up
+        # floor where a passenger is going that is determined to be closest
+        # (and in the right direction)
+        closest_pass_dest = self._find_closest_passenger(elevator)
+        closest_caller_dest = self._find_closest_caller(elevator)
+
+        # get the closest destination (or None if neither destination exists)
+        next_dest = min(
+            [i for i in [closest_pass_dest, closest_caller_dest] if i is not None],
+            key=lambda x: abs(elevator.curr_floor - x),
+            default=None)
+
+        # if neither destinatione exists, change direction and try again
+        if next_dest is None and ch_dir:
+            if elevator.direction == "up":
+                elevator.direction = "down"
+            else:
+                elevator.direction = "up"
+
+            # prevent an infinite recursion by passing ch_dir=False
+            return self.get_next_dest(elevator, ch_dir=False)
+
+        return next_dest
+
+
+
 class FixedSectorsTimePriorityElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
     with TIME priority
