@@ -406,13 +406,15 @@ class NearestCarElevatorController(ElevatorController):
                 if passenger.destination > elevator.curr_floor:
                     if closest is None:
                         closest = passenger.destination
-                    elif passenger.destination - elevator.curr_floor < closest - elevator.curr_floor:
+                    elif (passenger.destination - elevator.curr_floor
+                          < closest - elevator.curr_floor):
                         closest = passenger.destination
             else:
                 if passenger.destination < elevator.curr_floor:
                     if closest is None:
                         closest = passenger.destination
-                    elif elevator.curr_floor - passenger.destination < elevator.curr_floor - closest:
+                    elif (elevator.curr_floor - passenger.destination
+                          < elevator.curr_floor - closest):
                         closest = passenger.destination
         return closest
 
@@ -425,14 +427,16 @@ class NearestCarElevatorController(ElevatorController):
         self.update_dests()
 
         #check if theres a passenger destination coming up
-        closest_pass_dest = None #floor where a passenger is going that is determined to be closest (and in the right direction)
+        #floor where a passenger is going that is determined to be closest
+        #(and in the right direction)
+        closest_pass_dest = None
         if len(elevator.passengers) is not 0:
             closest_pass_dest = self._find_closest_passenger(elevator)
 
         closest_caller_dest = None #
         if len(elevator.destination_queue) is not 0:
             #find the closest caller in our direction
-            closest_caller_dest = self._find_closest_caller(elevator) #floor of the closest call in our direction
+            closest_caller_dest = self._find_closest_caller(elevator)
 
         #if we have no closest call but have a closest passenger, go drop them off
         if closest_pass_dest is not None and closest_caller_dest is None:
@@ -465,7 +469,8 @@ class NearestCarElevatorController(ElevatorController):
                 return closest_caller_dest
             #if we have both, we need to decide what to do
             elif closest_caller_dest is not None and closest_pass_dest is not None:
-                if abs(elevator.curr_floor - closest_caller_dest) < abs(elevator.curr_floor - closest_pass_dest):
+                if (abs(elevator.curr_floor - closest_caller_dest)
+                        < abs(elevator.curr_floor - closest_pass_dest)):
                     return closest_caller_dest
                 else:
                     return closest_pass_dest
@@ -483,7 +488,8 @@ class NearestCarElevatorController(ElevatorController):
                     continue
 
                 # base fs score
-                fos[idx] = len(self._building.floor_order) + 1 - abs(arrival[2] - elevator.curr_floor)
+                fos[idx] = (len(self._building.floor_order)
+                            + 1 - abs(arrival[2] - elevator.curr_floor))
 
                 # if the person is going in the opposite direction of the elevator, fs - 1
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
