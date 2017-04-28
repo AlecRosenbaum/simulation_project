@@ -429,32 +429,21 @@ class NearestCarElevatorController(ElevatorController):
         fos = [] #figures of suitability for each elevator
         for arrival in self._building.all_arrivals:
             for idx, elevator in enumerate(self.elevators):
-                #if the person is on a floor we're going up to
-                if elevator.direction == "up" and arrival[2] > elevator.curr_floor:
-                    #if the person's destination is up
-                    if arrival[1].destination > arrival[2]:
-                        fos[idx] = (14 + 2) - abs((arrival[2] - elevator.curr_floor))
-                    #if the person's destination is down
-                    else:
-                        fos[idx] = (14 + 1) - abs((arrival[2] - elevator.curr_floor))
-                #if the person is on a floor we're going down to
-                elif elevator.direction == "down" and arrival[2] < elevator.curr_floor:
-                    #if the person's destination is down
-                    if arrival[1].destination < arrival[2]:
-                        fos[idx] = (14 + 2) - abs((arrival[2] - elevator.curr_floor))
-                    #if the person's destination is up
-                    else:
-                        fos[idx] = (14 + 1) - abs((arrival[2] - elevator.curr_floor))
-                #if the person is in the opposite direction that we're moving
-                else:
+                # FS = 1 if elevator isn't moving towards the call
+                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
                     fos[idx] = 1
+                    continue
+
+                # base fs score
+                fos[idx] = len(self._building.floor_order) + 2 - abs(arrival[2] - elevator.curr_floor)
+
+                # if the person is going in the opposite direction of the elevator, fs - 1
+                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
+                    fox[idx] -= 1
 
             #find the greatest figure of suitability for this arrival
-            max_idx = 0
-            for i, _ in enumerate(fos):
-                if fos[i] > fos[max_idx]:
-                    max_idx = i
-
+            max_idx = fos.index(max(fos))
+            
             #add this floor to the destination queue of the best elevator
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
