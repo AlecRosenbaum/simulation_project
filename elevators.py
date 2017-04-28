@@ -177,6 +177,17 @@ class Elevator:
         """returns the remaining capacity of the elevator"""
         return self.capacity - len(self.passengers)
 
+    def __str__(self):
+        return "Elevator[{}, {}, {} -> {}, {}]".format(
+            self.id,
+            self.state,
+            self.curr_floor,
+            self.next_dest,
+            self.passengers)
+
+    def __lt__(self, cmp):
+        return self.id < cmp.id
+
 
 # SINGLE-ELEVATOR ALGORITHMS
 
@@ -336,7 +347,7 @@ class ElevatorController:
             num_elevators: number of elevators to spawn
             other: required and optional arguments pass to ControlledElevator constructor
         """
-        self.elevators.extend([ControlledElevator(*args, **kwargs) for _ in range(num_elevators)])
+        self.elevators.extend([ControlledElevator(self, *args, **kwargs) for _ in range(num_elevators)])
 
     def get_next_dest(self, elevator):
         """called by each controlled elevator, must be implemented by each subclass"""
@@ -355,11 +366,11 @@ class ControlledElevator(Elevator):
 
     def load(self):
         """load_passengers into the elevator"""
-        self._load_passengers(self)
+        self._load_passengers()
 
     def get_next_dest(self):
         """Must be implemented by each algorithm subclass"""
-        self._controller.get_next_dest(self)
+        return self._controller.get_next_dest(self)
 
 class NearestCarElevatorController(ElevatorController):
     """
@@ -379,7 +390,6 @@ class NearestCarElevatorController(ElevatorController):
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.spawn_elevators(6) #get 6 elevators
 
     #return the closest index in the queue of destinations, or None
     #if there is no destination in that direction
@@ -420,67 +430,79 @@ class NearestCarElevatorController(ElevatorController):
         return closest
 
     #return the closest destination in the current direction
-    def get_next_dest(self, elevator):
+    def get_next_dest(self, elevator, ch_dir=True):
         # remove current floor from destination queue
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
 
         self.update_dests()
 
-        #check if theres a passenger destination coming up
-        #floor where a passenger is going that is determined to be closest
-        #(and in the right direction)
-        closest_pass_dest = None
-        if len(elevator.passengers) is not 0:
-            closest_pass_dest = self._find_closest_passenger(elevator)
+        # check if theres a passenger destination coming up
+        # floor where a passenger is going that is determined to be closest
+        # (and in the right direction)
+        closest_pass_dest = self._find_closest_passenger(elevator)
+        closest_caller_dest = self._find_closest_caller(elevator)
 
-        closest_caller_dest = None #
-        if len(elevator.destination_queue) is not 0:
-            #find the closest caller in our direction
-            closest_caller_dest = self._find_closest_caller(elevator)
+        # get the closest destination (or None if neither destination exists)
+        next_dest = min(
+            [i for i in [closest_pass_dest, closest_caller_dest] if i is not None],
+            key=lambda x: abs(elevator.curr_floor - x),
+            default=None)
 
-        #if we have no closest call but have a closest passenger, go drop them off
-        if closest_pass_dest is not None and closest_caller_dest is None:
-            return closest_pass_dest
-        #if we have no closest passenger but have a closest call, go get them
-        elif closest_pass_dest is None and closest_caller_dest is not None:
-            return closest_caller_dest
-        #if we have both, we need to decide what to do
-        elif closest_caller_dest is not None and closest_pass_dest is not None:
-            if (abs(elevator.curr_floor - closest_caller_dest) <
-                    abs(elevator.curr_floor - closest_pass_dest)):
-                return closest_caller_dest
-            else:
-                return closest_pass_dest
-        #otherwise, if we have neither, we need to see what happens when we change direction
-        else:
+        # if neither destinatione exists, change direction and try again
+        if next_dest is None and ch_dir:
             if elevator.direction == "up":
                 elevator.direction = "down"
             else:
                 elevator.direction = "up"
 
-            closest_pass_dest = self._find_closest_passenger
-            closest_caller_dest = self._find_closest_caller
+            # prevent an infinite recursion by passing ch_dir=False
+            return self.get_next_dest(elevator, ch_dir=False)
 
-            #if we have no closest call but have a closest passenger, go drop them off
-            if closest_pass_dest is not None and closest_caller_dest is None:
-                return closest_pass_dest
-            #if we have no closest passenger but have a closest call, go get them
-            elif closest_pass_dest is None and closest_caller_dest is not None:
-                return closest_caller_dest
-            #if we have both, we need to decide what to do
-            elif closest_caller_dest is not None and closest_pass_dest is not None:
-                if (abs(elevator.curr_floor - closest_caller_dest)
-                        < abs(elevator.curr_floor - closest_pass_dest)):
-                    return closest_caller_dest
-                else:
-                    return closest_pass_dest
-            else:
-                return None
+        return next_dest
+
+        # #if we have no closest call but have a closest passenger, go drop them off
+        # if closest_pass_dest is not None and closest_caller_dest is None:
+        #     return closest_pass_dest
+        # #if we have no closest passenger but have a closest call, go get them
+        # elif closest_pass_dest is None and closest_caller_dest is not None:
+        #     return closest_caller_dest
+        # #if we have both, we need to decide what to do
+        # elif closest_caller_dest is not None and closest_pass_dest is not None:
+        #     if (abs(elevator.curr_floor - closest_caller_dest) <
+        #             abs(elevator.curr_floor - closest_pass_dest)):
+        #         return closest_caller_dest
+        #     else:
+        #         return closest_pass_dest
+        # #otherwise, if we have neither, we need to see what happens when we change direction
+        # else:
+        #     if elevator.direction == "up":
+        #         elevator.direction = "down"
+        #     else:
+        #         elevator.direction = "up"
+
+        #     closest_pass_dest = self._find_closest_passenger
+        #     closest_caller_dest = self._find_closest_caller
+
+        #     #if we have no closest call but have a closest passenger, go drop them off
+        #     if closest_pass_dest is not None and closest_caller_dest is None:
+        #         return closest_pass_dest
+        #     #if we have no closest passenger but have a closest call, go get them
+        #     elif closest_pass_dest is None and closest_caller_dest is not None:
+        #         return closest_caller_dest
+        #     #if we have both, we need to decide what to do
+        #     elif closest_caller_dest is not None and closest_pass_dest is not None:
+        #         if (abs(elevator.curr_floor - closest_caller_dest)
+        #                 < abs(elevator.curr_floor - closest_pass_dest)):
+        #             return closest_caller_dest
+        #         else:
+        #             return closest_pass_dest
+        #     else:
+        #         return None
 
     def update_dests(self):
         """Update the destinations of all elevators based on calculated scores"""
-        fos = [] #figures of suitability for each elevator
+        fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
         for arrival in self._building.all_arrivals:
             for idx, elevator in enumerate(self.elevators):
                 # FS = 1 if elevator isn't moving towards the call
@@ -515,12 +537,6 @@ class FixedSectorsElevatorController(NearestCarElevatorController):
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.spawn_elevators(6) #get 6 elevators
-        self._set_sectors()
-
-
-    def _set_sectors(self):
-        """Set the sectors for each elevator, as a range in the
-        buildings floor_order"""
         self.elevators[0].sector = ["G", "1", "2", "3"]
         self.elevators[1].sector = ["G", "1", "2", "3"]
         self.elevators[2].sector = ["G", "1", "2", "3"]
@@ -536,21 +552,20 @@ class FixedSectorsElevatorController(NearestCarElevatorController):
                 # FS = 0 if call outside sector
                 if arrival[2] not in elevator.sectors:
                     fos[idx] = 0
-                       
-                
-                else:
-                    # FS = 1 if elevator isn't moving towards the call
-                    if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
-                        fos[idx] = 1
-                        continue
-    
-                    # base fs score
-                    fos[idx] = (len(self._building.floor_order)
-                                + 1 - abs(arrival[2] - elevator.curr_floor))
-    
-                    # if the person is going in the opposite direction of the elevator, fs - 1
-                    if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
-                        fos[idx] -= 1
+                    continue
+
+                # FS = 1 if elevator isn't moving towards the call
+                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
+                    fos[idx] = 1
+                    continue
+
+                # base fs score
+                fos[idx] = (len(self._building.floor_order)
+                            + 1 - abs(arrival[2] - elevator.curr_floor))
+
+                # if the person is going in the opposite direction of the elevator, fs - 1
+                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
+                    fos[idx] -= 1
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
@@ -590,3 +605,4 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
 
     def get_next_dest(self, elevator):
+        pass

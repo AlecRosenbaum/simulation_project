@@ -16,7 +16,7 @@ class Building:
             self.floor[i] = Floor(self, i)
         self.all_arrivals = [] #(time, person, floor)
 
-    def push(self, person, time, floor):
+    def push(self, time, person, floor):
         """add to the queue"""
         self.all_arrivals.append((time, person, floor))
         self.all_arrivals.sort(key=lambda x: x[0])
@@ -27,10 +27,7 @@ class Building:
 
     def remove(self, person):
         """remove the head of the list"""
-        for idx, i in enumerate(self.all_arrivals):
-            if person == i[1]:
-                self.all_arrivals.pop(idx)
-                return
+        self.all_arrivals.remove(person)
 
 class Floor:
     """models each floor of a building
@@ -50,7 +47,7 @@ class Floor:
         """add to the queue"""
         self.queue.append((time, person))
         self.queue.sort(key=lambda x: x[0])
-        self.building.all_arrivals.append((time, person, self.name))
+        self.building.push(time, person, self)
 
     def remove(self, person):
         """remove instance i from queue (person comparators have been implemented)"""
@@ -116,7 +113,8 @@ class Floor:
     def __str__(self):
         return self.name
 
-    __repr__ = __str__
+    def __repr__(self):
+        return "Floor({})".format(self.name)
 
     def __lt__(self, cmp):
         floor_order = self.building.floor_order

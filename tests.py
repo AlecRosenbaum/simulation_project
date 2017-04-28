@@ -118,22 +118,26 @@ def test_nearest_elevator():
     cnt = 0
     for time, person in arr_gen.arrival_times:
         cnt += 1
-        if cnt > 100:
+        if cnt > 10000:
             break
         settings.FEQ.put_nowait((time, person, person.States.QUEUED))
 
     # create 6 elevators
-    settings.ELEVATORS.append(elevators.ControlledElevator(None, building))
-    settings.ELEVATORS.append(elevators.ControlledElevator(None, building))
-    settings.ELEVATORS.append(elevators.ControlledElevator(None, building))
-    settings.ELEVATORS.append(elevators.ControlledElevator(None, building))
-    settings.ELEVATORS.append(elevators.ControlledElevator(None, building))
-    settings.ELEVATORS.append(elevators.ControlledElevator(None, building))
+    controller = elevators.NearestCarElevatorController(building)
+    controller.spawn_elevators(6, person_logger, building)
+    settings.ELEVATORS.extend(controller.elevators)
 
     while not settings.FEQ.empty():
         curr_time, obj, state = settings.FEQ.get_nowait()
         settings.CURR_TIME = curr_time
         obj.update_state(state)
+
+        # # print system state
+        # for i in settings.ELEVATORS:
+        #     print(i)
+        # for i in building.floor_order:
+        #     print(i, building.floor[i].queue)
+        # print("------------------------------")
 
     # commit changes to person_logger
     person_logger.conn.commit()
