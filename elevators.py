@@ -363,6 +363,7 @@ class ControlledElevator(Elevator):
         self.destination_queue = []
         self.direction = "up"
         self.sector = None
+        self.curr_floor = self._building.floor['SB']
 
     def load(self):
         """load_passengers into the elevator"""
