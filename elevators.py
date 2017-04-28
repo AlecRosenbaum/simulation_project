@@ -405,6 +405,10 @@ class NearestCarElevatorController(ElevatorController):
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
 
+        #we need to drop off passg
+        if len(elevator.passengers) is not 0:
+
+
         self.update_dests()
 
         if len(elevator.destination_queue) is not 0:
@@ -458,7 +462,7 @@ class NearestCarElevatorController(ElevatorController):
             #add this floor to the destination queue of the best elevator
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
-            self._building.remove(arrival[1]) #we're finished with this arrival
+            self._building.remove(arrival) #we're finished with this arrival
 
 class FixedSectorsElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
@@ -477,13 +481,11 @@ class FixedSectorsElevatorController(ElevatorController):
     def _set_sectors(self):
         """Set the sectors for each elevator, as a range in the
         buildings floor_order"""
-        self.elevators[0].sector = self._building.floor_order["G", "1", "2", "3"]
-        self.elevators[1].sector = self._building.floor_order["G", "1", "2", "3"]
-        self.elevators[2].sector = self._building.floor_order["G", "1", "2", "3"]
-        self.elevators[3].sector = self._building.floor_order["G", "1", "2", "3", "10", "12"]
-        self.elevators[4].sector = self._building.floor_order["SB", "B", "1", "G"]
-        self.elevators[5].sector = self._building.floor_order["G", "1", "6", "8", "9"]
-
+        self.elevators[0].sector = ["G", "1", "2", "3"]
+        self.elevators[1].sector = ["G", "1", "2", "3"]
+        self.elevators[2].sector = ["G", "1", "2", "3"]
+        self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
+        self.elevators[4].sector = ["SB", "B", "1", "G"]
+        self.elevators[5].sector = ["G", "1", "6", "8", "9"]
 
     def get_next_dest(self, elevator):
-        pass
