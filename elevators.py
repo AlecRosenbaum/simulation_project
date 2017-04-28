@@ -700,7 +700,6 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
     #return the closest index in the queue of destinations, or None
     #if there is no destination in that direction
     def _find_highest_priority_caller(self, elevator):
-        print("Current time: ", settings.CURR_TIME)
         shortest = None
         highest_wait_floor = None
         highest_wait_time = 0
@@ -713,10 +712,11 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                         first_person = destination.queue[0]
                         arrival_time = first_person[0]
                         wait_time = settings.CURR_TIME - arrival_time
-                        s = "Floor " + destination.name +": Person has waited: " + repr(wait_time)
-                        print(s)
                         #if we've exceeded max_wait, we should go there
                         if wait_time > settings.MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                            print("Current time: ", settings.CURR_TIME)
+                            s = "NEW PRIORITY DEST: Floor " + destination.name +": Person has waited: " + repr(wait_time)
+                            print(s)
                             highest_wait_floor = destination
                             highest_wait_time = wait_time
                             continue
@@ -737,10 +737,11 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                         first_person = destination.queue[0]
                         arrival_time = first_person[0]
                         wait_time = settings.CURR_TIME - arrival_time
-                        s = "Floor " + destination.name +":First person has waited: " + repr(wait_time)
-                        print(s)
                         #if we've exceeded max_wait, we should go there
                         if wait_time > settings.MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                            print("Current time: ", settings.CURR_TIME)
+                            s = "NEW PRIORITY DEST: Floor " + destination.name +": Person has waited: " + repr(wait_time)
+                            print(s)
                             highest_wait_floor = destination
                             highest_wait_time = wait_time
                             continue
