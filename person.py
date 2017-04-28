@@ -149,6 +149,8 @@ class ArrivalGenerator:
         """
         if days is None:
             days = set(['M'])
+        else:
+            days = set(days)
 
         # read csv, for each class, generate arrivals and departures
         for i in ArrivalGenerator.parse_csv(file_path):
