@@ -482,51 +482,6 @@ class FixedSectorsElevatorController(ElevatorController):
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
         #NOTE: SECTORS MOVED TO BEING SET IN TEST/CALL FILE
-        #self.spawn_elevators(6) #get 6 elevators
-        #self.elevators[0].sector = ["G", "1", "2", "3"]
-        #self.elevators[1].sector = ["G", "1", "2", "3"]
-        #self.elevators[2].sector = ["G", "1", "2", "3"]
-        #self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
-        #self.elevators[4].sector = ["SB", "B", "1", "G"]
-        #self.elevators[5].sector = ["G", "1", "6", "8", "9"]
-
-    #return the closest index in the queue of destinations, or None
-    #if there is no destination in that direction
-    def _find_closest_caller(self, elevator):
-        shortest = None
-        for destination in elevator.destination_queue:
-            if elevator.direction == "up":
-                if destination > elevator.curr_floor:
-                    if shortest is None:
-                        shortest = destination
-                    elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
-                        shortest = destination
-            else:
-                if destination < elevator.curr_floor:
-                    if shortest is None:
-                        shortest = destination
-                    elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
-                        shortest = destination
-        return shortest
-
-    def _find_closest_passenger(self, elevator):
-        closest = None
-        for passenger in elevator.passengers:
-            if elevator.direction == "up":
-                if passenger.destination > elevator.curr_floor:
-                    if closest is None:
-                        closest = passenger.destination
-                    elif (passenger.destination - elevator.curr_floor
-                          < closest - elevator.curr_floor):
-                        closest = passenger.destination
-            else:
-                if passenger.destination < elevator.curr_floor:
-                    if closest is None:
-                        closest = passenger.destination
-                    elif (elevator.curr_floor - passenger.destination
-                          < elevator.curr_floor - closest):
-                        closest = passenger.destination
-        return closest
 
     #return the closest destination in the current direction
     def get_next_dest(self, elevator, ch_dir=True):
