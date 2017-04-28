@@ -26,6 +26,7 @@ class Elevator:
         self.curr_floor = building.floor['1'] # starts on 1st floor
         self.passengers = []
         self.next_dest = None
+        self.sectors = []
 
         self.__class__.elevator_cnt += 1
 
@@ -503,7 +504,7 @@ class NearestCarElevatorController(ElevatorController):
 
             self._building.remove(arrival) #we're finished with this arrival
 
-class FixedSectorsElevatorController(ElevatorController):
+class FixedSectorsElevatorController(NearestCarElevatorController):
     """This controller implements the Fixed Sector algorithm
 
     The building is divided into as many sectors as there are elevators,
@@ -526,10 +527,39 @@ class FixedSectorsElevatorController(ElevatorController):
         self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
         self.elevators[4].sector = ["SB", "B", "1", "G"]
         self.elevators[5].sector = ["G", "1", "6", "8", "9"]
+    
+    def update_dests(self):
+        """Update the destinations of all elevators based on sectors"""
+        fos = [] #figures of suitability for each elevator
+        for arrival in self._building.all_arrivals:
+            for idx, elevator in enumerate(self.elevators):
+                # FS = 0 if call outside sector
+                if arrival[2] not in elevator.sectors:
+                    fos[idx] = 0
+                       
+                
+                else:
+                    # FS = 1 if elevator isn't moving towards the call
+                    if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
+                        fos[idx] = 1
+                        continue
+    
+                    # base fs score
+                    fos[idx] = (len(self._building.floor_order)
+                                + 1 - abs(arrival[2] - elevator.curr_floor))
+    
+                    # if the person is going in the opposite direction of the elevator, fs - 1
+                    if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
+                        fos[idx] -= 1
 
-    def get_next_dest(self, elevator):
+            #find the greatest figure of suitability for this arrival
+            max_idx = fos.index(max(fos))
 
+            #add this floor to the destination queue of the best elevator
+            self.elevators[max_idx].destination_queue.append(arrival[2])
 
+            self._building.remove(arrival) #we're finished with this arrival
+            
 class FixedSectorsTimePriorityElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
     with TIME priority
@@ -559,4 +589,4 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
         #TO-DO: SET Priorities
 
 
-    def get_next_dest(self, elevator):
+    #def get_next_dest(self, elevator):
