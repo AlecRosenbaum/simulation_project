@@ -647,22 +647,24 @@ class FixedSectorsElevatorController(ElevatorController):
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
                     fos[idx] -= 1
 
+                print(elevator.up_sector)
+
                 min_up_sec = min(elevator.up_sector)
                 max_up_sec = max(elevator.up_sector)
                 min_down_sec = min(elevator.down_sector)
                 max_down_sec = max(elevator.down_sector)
                 arr_floor = arrival[2]
 
-                if arr_floor == "SB":
+                if arr_floor.name == "SB":
                     arr_floor = -2
-                elif arr_floor == "B":
+                elif arr_floor.name == "B":
                     arr_floor = -1
-                elif arr_floor == "G":
+                elif arr_floor.name == "G":
                     arr_floor = 0
                 else:
-                    arr_floor = int(arr_floor)
+                    arr_floor = int(arr_floor.name)
 
-                p_dest = arrival[1]
+                p_dest = arrival[2]
 
                 min_up_dist = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
                 min_down_dist = min(abs(arr_floor-min_down_sec), abs(arr_floor-max_down_sec))

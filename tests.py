@@ -195,12 +195,18 @@ def test_sector_elevator():
     controller = elevators.FixedSectorsElevatorController(building)
     controller.spawn_elevators(6, person_logger, building)
     #SET SECTORS
-    controller.elevators[0].sector = ["G", "1", "2", "3"]
-    controller.elevators[1].sector = ["G", "1", "2", "3"]
-    controller.elevators[2].sector = ["G", "1", "2", "3"]
-    controller.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
-    controller.elevators[4].sector = ["SB", "B", "1", "G"]
-    controller.elevators[5].sector = ["G", "1", "6", "8", "9"]
+    controller.elevators[0].up_sector = [0, 1]
+    controller.elevators[0].down_sector = [1, 2, 3]
+    controller.elevators[1].up_sector = [0, 1]
+    controller.elevators[1].down_sector = [1, 2, 3]
+    controller.elevators[2].up_sector = [0, 1]
+    controller.elevators[2].down_sector = [1, 2, 3]
+    controller.elevators[3].up_sector = [0, 1]
+    controller.elevators[3].down_sector = [10, 12]
+    controller.elevators[4].up_sector = list(range(-2, 12)) #-2, -1, 0, ...., 11
+    controller.elevators[4].down_sector = list(range(-1, 13))    #-1, 0, ..., 12
+    controller.elevators[5].up_sector = [-2, -1]
+    controller.elevators[5].down_sector = [0, 1]
     settings.ELEVATORS.extend(controller.elevators)
 
     while not settings.FEQ.empty():
@@ -252,20 +258,18 @@ def test_sector_time_elevator():
     controller = elevators.FixedSectorsTimePriorityElevatorController(building)
     controller.spawn_elevators(6, person_logger, building)
     #SET SECTORS
-    controller.elevators[0].up_sector = ["G", "1"]
-    controller.elevators[0].down_sector = ["1", "2", "3"]
-    controller.elevators[1].up_sector = ["G", "1"]
-    controller.elevators[1].down_sector = ["1", "2", "3"]
-    controller.elevators[2].up_sector = ["G", "1"]
-    controller.elevators[2].down_sector = ["1", "2", "3"]
-    controller.elevators[3].up_sector = ["G", "1"]
-    controller.elevators[3].down_sector = ["10", "12"]
-    controller.elevators[4].up_sector = ["SB", "B", "G", "1", "2", "3",
-                                         "4", "5", "6", "7", "8", "9", "10", "11"]
-    controller.elevators[4].down_sector = ["B", "G", "1", "2", "3", "4", "5",
-                                           "6", "7", "8", "9", "10", "11", "12"]
-    controller.elevators[5].up_sector = ["SB", "B"]
-    controller.elevators[5].down_sector = ["G", "1"]
+    controller.elevators[0].up_sector = [0, 1]
+    controller.elevators[0].down_sector = [1, 2, 3]
+    controller.elevators[1].up_sector = [0, 1]
+    controller.elevators[1].down_sector = [1, 2, 3]
+    controller.elevators[2].up_sector = [0, 1]
+    controller.elevators[2].down_sector = [1, 2, 3]
+    controller.elevators[3].up_sector = [0, 1]
+    controller.elevators[3].down_sector = [10, 12]
+    controller.elevators[4].up_sector = list(range(-2, 12)) #-2, -1, 0, ...., 11
+    controller.elevators[4].down_sector = list(range(-1, 13))    #-1, 0, ..., 12
+    controller.elevators[5].up_sector = [-2, -1]
+    controller.elevators[5].down_sector = [0, 1]
     settings.ELEVATORS.extend(controller.elevators)
 
     while not settings.FEQ.empty():
