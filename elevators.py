@@ -662,7 +662,16 @@ class FixedSectorsElevatorController(ElevatorController):
                 else:
                     arr_floor = int(arr_floor.name)
 
-                p_dest = arrival[1].destination
+                p_dest = arrival[1].destination.name
+
+                if p_dest == "SB":
+                    p_dest = -2
+                elif p_dest == "B":
+                    p_dest = -1
+                elif p_dest == "G":
+                    p_dest = 0
+                else:
+                    p_dest = int(p_dest)
 
                 min_up_dist = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
                 min_down_dist = min(abs(arr_floor-min_down_sec), abs(arr_floor-max_down_sec))
