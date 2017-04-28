@@ -360,7 +360,9 @@ class ControlledElevator(Elevator):
 
         for i in self.curr_floor.queue[:self.rem_cap()]:
             self._add_passenger(i[1])
-            self.destination_queue.append(i[1].destination)
+
+            if i[1].destination not in self.destination_queue:
+                self.destination_queue.append(i[1].destination)
 
 
     def get_next_dest(self):
