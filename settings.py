@@ -6,6 +6,8 @@ from os import path
 DEFAULT_CAPACITY = 20
 G_ENTRY_PCT = .6
 ELEVATOR_SPEED = 1.5 # 1.5 seconds per floor traveled
+MAX_WAIT = 60   #if someone has waited > 60s
+SUPER_MAX_WAIT = 120 #if someone has waited > 120s
 
 # log filename
 LOG_DIR = "logs"
