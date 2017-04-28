@@ -625,8 +625,8 @@ class FixedSectorsElevatorController(ElevatorController):
                     else:
                         #if we're going down and we're outisde the down sector
                         denom = min(abs(arr_floor-min_down_sec),
-                                            abs(arr_floor-max_down_sec))
-                    if not denom is 0:
+                                    abs(arr_floor-max_down_sec))
+                    if denom is not 0:
                         fos[idx] = fos[idx]/denom
 
             #find the greatest figure of suitability for this arrival
