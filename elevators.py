@@ -671,6 +671,16 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
         fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
         for arrival in self._building.all_arrivals:
             for idx, elevator in enumerate(self.elevators):
+                #force idle elevators to service people who have been waiting too long
+                #if elevator.state is Elevator.States.IDLE:
+                #    emergency_caller = self._find_emergency_caller(elevator)
+                #    if emergency_caller is not None:
+                #        if (elevator.curr_floor - emergency_caller) < 0:
+                #            elevator.direction = "up"
+                #        else:
+                #            elevator.direction = "down"
+                #        elevator.destination_queue.append(emergency_caller)
+
                 # FS = 0 if call outside sector
                 if arrival[2] not in elevator.sectors:
                     fos[idx] = 0
@@ -795,6 +805,7 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
     #return closest destination in the current direction in the current sector
     def get_next_dest(self, elevator, ch_dir=True):
+        #force idle elevators to service people who have been waiting too long
         if elevator.state is Elevator.States.IDLE:
             emergency_caller = self._find_emergency_caller(elevator)
             if emergency_caller is not None:
@@ -802,12 +813,15 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                     elevator.direction = "up"
                 else:
                     elevator.direction = "down"
-                self.update_dests()
-                return emergency_caller
+                elevator.destination_queue.append(emergency_caller)
+            self.update_dests()
+            return emergency_caller
+
         #remove current floor from destination queue
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
         self.update_dests()
+
 
 
         # check if theres a passenger destination coming up
