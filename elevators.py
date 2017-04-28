@@ -442,7 +442,8 @@ class NearestCarElevatorController(ElevatorController):
             return closest_caller_dest
         #if we have both, we need to decide what to do
         elif closest_caller_dest is not None and closest_pass_dest is not None:
-            if abs(elevator.curr_floor - closest_caller_dest) < abs(elevator.curr_floor - closest_pass_dest):
+            if (abs(elevator.curr_floor - closest_caller_dest) <
+                    abs(elevator.curr_floor - closest_pass_dest)):
                 return closest_caller_dest
             else:
                 return closest_pass_dest
