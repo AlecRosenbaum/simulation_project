@@ -48,7 +48,8 @@ def test_scan_elevator(limit=None):
         settings.FEQ.put_nowait((time, person, person.States.QUEUED))
 
     # create an elevator
-    settings.ELEVATORS.append(elevators.ScanElevator(None, building))
+    for _ in range(6):
+        settings.ELEVATORS.append(elevators.ScanElevator(None, building))
 
     while not settings.FEQ.empty():
         curr_time, obj, state = settings.FEQ.get_nowait()
