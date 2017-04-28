@@ -589,4 +589,4 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
         #TO-DO: SET Priorities
 
 
-    #def get_next_dest(self, elevator):
+    def get_next_dest(self, elevator):
