@@ -679,7 +679,9 @@ class FixedSectorsElevatorController(ElevatorController):
                 if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec and p_dest >= arr_floor)
                         or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
                             and p_dest <= arr_floor)):
-                    fos[idx] = fos[idx]/min(min_up_dist, min_down_dist)
+                    denom = min(min_up_dist, min_down_dist)
+                    if not denom is 0:
+                        fos[idx] = fos[idx]/denom
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
