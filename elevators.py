@@ -647,20 +647,18 @@ class FixedSectorsElevatorController(ElevatorController):
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
                     fos[idx] -= 1
 
-                if arrival[2] > elevator.curr_floor:
+                if arrival[1].destination > max(elevator.up_sector):
                     min_sec = min(elevator.up_sector)
                     max_sec = max(elevator.up_sector)
                     arr_floor = arrival[2]
                     if arr_floor < min_sec or arr_floor > max_sec:
                         fos[idx] = fos[idx]/min(abs(arr_floor-min_sec), abs(arr_floor-max_sec))
-                elif arrival[2] < elevator.curr_floor:
+                elif arrival[1].destination < min(elevator.down_sector):
                     min_sec = min(elevator.down_sector)
                     max_sec = max(elevator.down_sector)
                     arr_floor = arrival[2]
                     if arr_floor < min_sec or arr_floor > max_sec:
                         fos[idx] = fos[idx]/min(abs(arr_floor-min_sec), abs(arr_floor-max_sec))
-
-
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
