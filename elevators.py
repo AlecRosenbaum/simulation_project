@@ -443,7 +443,7 @@ class NearestCarElevatorController(ElevatorController):
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
-            
+
             #add this floor to the destination queue of the best elevator
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
@@ -472,5 +472,37 @@ class FixedSectorsElevatorController(ElevatorController):
         self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
         self.elevators[4].sector = ["SB", "B", "1", "G"]
         self.elevators[5].sector = ["G", "1", "6", "8", "9"]
+
+    def get_next_dest(self, elevator):
+
+
+class FixedSectorsTimePriorityElevatorController(ElevatorController):
+    """This controller implements the Fixed Sector algorithm
+    with TIME priority
+
+    The building is divided into as many sectors as there are elevators,
+    and elevators will respond to calls within their sector.
+
+    Additionally, priority for a floor increases as "time" increases
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.spawn_elevators(6) #get 6 elevators
+        self._set_sectors()
+
+
+    def _set_sectors(self):
+        """Set the sectors for each elevator, as a range in the
+        buildings floor_order"""
+        self.elevators[0].sector = ["G", "1", "2", "3"]
+        self.elevators[1].sector = ["G", "1", "2", "3"]
+        self.elevators[2].sector = ["G", "1", "2", "3"]
+        self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
+        self.elevators[4].sector = ["SB", "B", "1", "G"]
+        self.elevators[5].sector = ["G", "1", "6", "8", "9"]
+        #TO-DO: SET Priorities
+
 
     def get_next_dest(self, elevator):
