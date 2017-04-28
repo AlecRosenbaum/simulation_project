@@ -22,8 +22,8 @@ def test_scan_elevator(limit=None):
         os.makedirs(dirs)
 
     # create loggers
-    person_logger = logger.PersonLogger(
-        os.path.join(dirs, settings.LOG_DIR, settings.PERSON_LOG_FNAME), remove_old=True)
+    person_logger_path = os.path.join(dirs, settings.LOG_DIR, settings.PERSON_LOG_FNAME)
+    person_logger = logger.PersonLogger(person_logger_path, remove_old=True)
     # create building
     building = Building([
         'SB', 'B', 'G', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',])
@@ -55,16 +55,10 @@ def test_scan_elevator(limit=None):
         settings.CURR_TIME = curr_time
         obj.update_state(state)
 
-    for i in settings.ELEVATORS:
-        print(i)
-    for i in building.floor_order:
-        print(i, building.floor[i].queue[:min(5, len(building.floor[i].queue))])
-    print("------------------------------")
-
     # commit changes to person_logger
     person_logger.conn.commit()
 
-    sim_stats.run_stats()
+    sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
 
 
 def test_look_elevator():
