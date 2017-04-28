@@ -657,9 +657,9 @@ class FixedSectorsElevatorController(ElevatorController):
                 min_up_dist = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
                 min_down_dist = min(abs(arr_floor-min_down_sec), abs(arr_floor-max_down_sec))
 
-                if not ((arr_floor > min_up_sec and arr_floor < max_up_sec and p_dest > arr_floor)
-                        or (arr_floor > min_down_sec and arr_floor < max_down_sec
-                            and p_dest < arr_floor)):
+                if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec and p_dest >= arr_floor)
+                        or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
+                            and p_dest <= arr_floor)):
                     fos[idx] = fos[idx]/min(min_up_dist, min_down_dist)
 
             #find the greatest figure of suitability for this arrival
