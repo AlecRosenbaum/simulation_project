@@ -536,11 +536,21 @@ class FixedSectorsElevatorController(ElevatorController):
 
         self.update_dests()
 
-        # check if theres a passenger destination coming up
-        # floor where a passenger is going that is determined to be closest
-        # (and in the right direction)
-        closest_pass_dest = self._find_closest_passenger(elevator)
-        closest_caller_dest = self._find_closest_caller(elevator)
+        # find the closest passenger destination in the same direction
+        closest_pass_dest = min(
+            [i.destination for i
+             in elevator.passengers
+             if elevator.curr_floor.dir_to(i.destination) == elevator.direction],
+            key=lambda x: abs(x - elevator.curr_floor),
+            default=None)
+
+        # find the closest pickup in the pickup queue
+        closest_caller_dest = min(
+            [i for i
+             in elevator.destination_queue
+             if elevator.curr_floor.dir_to(i) == elevator.direction],
+            key=lambda x: abs(x - elevator.curr_floor),
+            default=None)
 
         # get the closest destination (or None if neither destination exists)
         next_dest = min(
@@ -550,10 +560,7 @@ class FixedSectorsElevatorController(ElevatorController):
 
         # if neither destinatione exists, change direction and try again
         if next_dest is None and ch_dir:
-            if elevator.direction == "up":
-                elevator.direction = "down"
-            else:
-                elevator.direction = "up"
+            elevator.change_direction()
 
             # prevent an infinite recursion by passing ch_dir=False
             return self.get_next_dest(elevator, ch_dir=False)
