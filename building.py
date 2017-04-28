@@ -95,6 +95,24 @@ class Floor:
                 yield i[1]
                 cnt += 1
 
+    def dir_to(self, cmp):
+        """returns the direction of cmp floor from self
+
+        Returns:
+            "up" for up
+            "down" for down
+            "same" if they're the same floor
+        """
+
+        if self < cmp:
+            return "up"
+        elif self > cmp:
+            return "down"
+        elif self == cmp:
+            return "same"
+        else:
+            raise ValueError("Inappropriate argument cmp = {}".format(cmp))
+
     def __str__(self):
         return self.name
 
