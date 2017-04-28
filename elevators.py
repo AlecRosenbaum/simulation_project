@@ -660,7 +660,7 @@ class FixedSectorsElevatorController(ElevatorController):
                 elif arr_floor == "G":
                     arr_floor = 0
                 else:
-                    int(arr_floor)
+                    arr_floor = int(arr_floor)
 
                 p_dest = arrival[1]
 
