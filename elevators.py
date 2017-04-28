@@ -697,6 +697,23 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
             self._building.remove(arrival) #we're finished with this arrival
 
+    def _find_emergency_caller(self, elevator):
+        highest_wait_floor = None
+        highest_wait_time = 0
+        for destination in elevator.destination_queue:
+            #if the queue for that floor is not empty
+            if destination.queue:
+                first_person = destination.queue[0]
+                arrival_time = first_person[0]
+                wait_time = settings.CURR_TIME - arrival_time
+                #if we've exceeded max_wait, we should go there
+                if wait_time > settings.SUPER_MAX_WAIT and wait_time > highest_wait_time and destination.name is not highest_wait_floor:
+                    print("Current time: ", settings.CURR_TIME)
+                    s = "NEW EMERGENCY DEST: Floor " + destination.name +": Person has waited: " + repr(wait_time)
+                    print(s)
+                    highest_wait_floor = destination
+                    highest_wait_time = wait_time
+        return highest_wait_floor
     #return the closest index in the queue of destinations, or None
     #if there is no destination in that direction
     def _find_highest_priority_caller(self, elevator):
@@ -778,6 +795,15 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
     #return closest destination in the current direction in the current sector
     def get_next_dest(self, elevator, ch_dir=True):
+        if elevator.state is Elevator.States.IDLE:
+            emergency_caller = self._find_emergency_caller(elevator)
+            if emergency_caller is not None:
+                if (elevator.curr_floor - emergency_caller) < 0:
+                    elevator.direction = "up"
+                else:
+                    elevator.direction = "down"
+                self.update_dests()
+                return emergency_caller
         #remove current floor from destination queue
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
