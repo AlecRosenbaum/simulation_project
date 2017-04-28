@@ -526,7 +526,7 @@ class NearestCarElevatorController(ElevatorController):
 
             self._building.remove(arrival) #we're finished with this arrival
 
-class FixedSectorsElevatorController(NearestCarElevatorController):
+class FixedSectorsElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
 
     The building is divided into as many sectors as there are elevators,
@@ -536,17 +536,18 @@ class FixedSectorsElevatorController(NearestCarElevatorController):
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.spawn_elevators(6) #get 6 elevators
-        self.elevators[0].sector = ["G", "1", "2", "3"]
-        self.elevators[1].sector = ["G", "1", "2", "3"]
-        self.elevators[2].sector = ["G", "1", "2", "3"]
-        self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
-        self.elevators[4].sector = ["SB", "B", "1", "G"]
-        self.elevators[5].sector = ["G", "1", "6", "8", "9"]
-    
+        #NOTE: SECTORS MOVED TO BEING SET IN TEST/CALL FILE
+        #self.spawn_elevators(6) #get 6 elevators
+        #self.elevators[0].sector = ["G", "1", "2", "3"]
+        #self.elevators[1].sector = ["G", "1", "2", "3"]
+        #self.elevators[2].sector = ["G", "1", "2", "3"]
+        #self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
+        #self.elevators[4].sector = ["SB", "B", "1", "G"]
+        #self.elevators[5].sector = ["G", "1", "6", "8", "9"]
+
     def update_dests(self):
         """Update the destinations of all elevators based on sectors"""
-        fos = [] #figures of suitability for each elevator
+        fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
         for arrival in self._building.all_arrivals:
             for idx, elevator in enumerate(self.elevators):
                 # FS = 0 if call outside sector
@@ -574,7 +575,81 @@ class FixedSectorsElevatorController(NearestCarElevatorController):
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
             self._building.remove(arrival) #we're finished with this arrival
-            
+
+    #return the closest index in the queue of destinations, or None
+    #if there is no destination in that direction
+    def _find_closest_caller(self, elevator):
+        shortest = None
+        for destination in elevator.destination_queue:
+            if elevator.direction == "up":
+                #make sure it's only to the serviced sectors
+                if destination.name in elevator.sector:
+                    if destination > elevator.curr_floor:
+                        if shortest is None:
+                            shortest = destination
+                        elif destination - elevator.curr_floor < shortest - elevator.curr_floor:
+                            shortest = destination
+            else:
+                if destination < elevator.curr_floor:
+                    if shortest is None:
+                        shortest = destination
+                    elif elevator.curr_floor - destination < elevator.curr_floor - shortest:
+                        shortest = destination
+        return shortest
+
+    def _find_closest_passenger(self, elevator):
+        closest = None
+        for passenger in elevator.passengers:
+            if elevator.direction == "up":
+                if passenger.destination > elevator.curr_floor:
+                    if closest is None:
+                        closest = passenger.destination
+                    elif (passenger.destination - elevator.curr_floor
+                          < closest - elevator.curr_floor):
+                        closest = passenger.destination
+            else:
+                if passenger.destination < elevator.curr_floor:
+                    if closest is None:
+                        closest = passenger.destination
+                    elif (elevator.curr_floor - passenger.destination
+                          < elevator.curr_floor - closest):
+                        closest = passenger.destination
+        return closest
+
+    #return closest destination in the current direction in the current sector
+    def get_next_dest(self, elevator, ch_dir=True):
+        #remove current floor from destination queue
+        if elevator.curr_floor in elevator.destination_queue:
+            elevator.destination_queue.remove(elevator.curr_floor)
+        self.update_dests()
+
+
+        # check if theres a passenger destination coming up
+        # floor where a passenger is going that is determined to be closest
+        # (and in the right direction)
+        closest_pass_dest = self._find_closest_passenger(elevator)
+        closest_caller_dest = self._find_closest_caller(elevator)
+
+        # get the closest destination (or None if neither destination exists)
+        next_dest = min(
+            [i for i in [closest_pass_dest, closest_caller_dest] if i is not None],
+            key=lambda x: abs(elevator.curr_floor - x),
+            default=None)
+
+        # if neither destinatione exists, change direction and try again
+        if next_dest is None and ch_dir:
+            if elevator.direction == "up":
+                elevator.direction = "down"
+            else:
+                elevator.direction = "up"
+
+            # prevent an infinite recursion by passing ch_dir=False
+            return self.get_next_dest(elevator, ch_dir=False)
+
+        return next_dest
+
+
+
 class FixedSectorsTimePriorityElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
     with TIME priority
@@ -588,21 +663,6 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.spawn_elevators(6) #get 6 elevators
-        self._set_sectors()
-
-
-    def _set_sectors(self):
-        """Set the sectors for each elevator, as a range in the
-        buildings floor_order"""
-        self.elevators[0].sector = ["G", "1", "2", "3"]
-        self.elevators[1].sector = ["G", "1", "2", "3"]
-        self.elevators[2].sector = ["G", "1", "2", "3"]
-        self.elevators[3].sector = ["G", "1", "2", "3", "10", "12"]
-        self.elevators[4].sector = ["SB", "B", "1", "G"]
-        self.elevators[5].sector = ["G", "1", "6", "8", "9"]
-        #TO-DO: SET Priorities
-
 
     def get_next_dest(self, elevator):
         pass
