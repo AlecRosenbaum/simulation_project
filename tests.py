@@ -264,8 +264,8 @@ def test_sector_time_elevator():
                                          "4", "5", "6", "7", "8", "9", "10", "11"]
     controller.elevators[4].down_sector = ["B", "G", "1", "2", "3", "4", "5",
                                            "6", "7", "8", "9", "10", "11", "12"]
-    controller.elevators[3].up_sector = ["SB", "B"]
-    controller.elevators[3].down_sector = ["G", "1"]
+    controller.elevators[5].up_sector = ["SB", "B"]
+    controller.elevators[5].down_sector = ["G", "1"]
     settings.ELEVATORS.extend(controller.elevators)
 
     while not settings.FEQ.empty():
