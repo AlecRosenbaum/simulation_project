@@ -18,11 +18,8 @@ BASIC_ORDERED_STMT = """
 STATS_DIR = "stats"
 STATS_FILE_NAME = "stats.txt"
 PERSON_LOG_PATH = os.path.join(settings.LOG_DIR, settings.PERSON_LOG_FNAME)
-ELEVATOR_LOG_PATH = os.path.join(settings.LOG_DIR, settings.ELEVATOR_LOG_FNAME)
-FLOOR_LOG_PATH = os.path.join(settings.LOG_DIR, settings.FLOOR_LOG_FNAME)
 
-def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PATH,
-              floor_log_path=FLOOR_LOG_PATH, stats_dir=STATS_DIR):
+def run_stats(person_log_path=PERSON_LOG_PATH, stats_dir=STATS_DIR):
     """run stats for files"""
 
      # create statistics file
@@ -46,15 +43,15 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     service_vals = basic_data[idle_rows - 1, 2].astype(dtype=np.float32)
     queued_vals = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
 
-    # average wait time
+    ## average wait time
     avg_wait_time = np.mean(np.subtract(service_vals, queued_vals))
     print("average wait time (seconds):", avg_wait_time, file=stats_file)
 
-    # determine average time in system
+    ## determine average time in system
     avg_tis = np.mean(np.subtract(idle_vals, queued_vals))
     print("average time in system (seconds):", avg_tis, file=stats_file)
 
-    # time in system vs floors traveled
+    ## time in system vs floors traveled
     tis_vs_floors = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
     tis_vs_floors[:, 1] = idle_vals - queued_vals
     dest = basic_data[idle_rows, 6].astype(dtype=np.int32)
@@ -70,15 +67,21 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     x = []
     y = []
     for i in floor_diff_data:
-        x.append(i[0, 0])
+        x.append(int(i[0, 0]))
         y.append(np.mean(i[:, 1]))
 
     plt.clf()
-    plt.plot(x, y, color='r', linestyle='-')
+
+    y_pos = np.arange(len(x))
+    rects = plt.bar(y_pos, y, align='center', alpha=0.5)
+    plt.xticks(y_pos, x)
+    plt.ylabel("Time in System (seconds)")
+    plt.xlabel("Floors Traveled")
+    autolabel(rects, plt)
     plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_travel_distance", "png"])))
 
 
-    # avg wait time vs. arrival time (arrival == queued time)
+    ## avg wait time vs. arrival time (arrival == queued time)
     wait_time_vs_time = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
     wait_time_vs_time[:, 0] = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
     wait_time_vs_time[:, 1] = service_vals - queued_vals
@@ -87,9 +90,11 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     y = wait_time_vs_time[:, 1]
     plt.clf()
     plt.scatter(x, y, s=2, lw=0)
+    plt.ylabel("Wait Time (seconds)")
+    plt.xlabel("Arrival Time (seconds since 12AM)")
     plt.savefig(os.path.join(stats_dir, ".".join(["wait_time_vs_tod", "png"])))
 
-    # avg time in system vs. arrival time (arrival == queued time)
+    ## avg time in system vs. arrival time (arrival == queued time)
     tis_vs_time = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
     tis_vs_time[:, 0] = basic_data[idle_rows - 2, 2].astype(dtype=np.float32)
     tis_vs_time[:, 1] = idle_vals - queued_vals
@@ -98,8 +103,54 @@ def run_stats(person_log_path=PERSON_LOG_PATH, elevator_log_path=ELEVATOR_LOG_PA
     y = tis_vs_time[:, 1]
     plt.clf()
     plt.scatter(x, y, s=2, lw=0)
+    plt.ylabel("Time in System (seconds)")
+    plt.xlabel("Arrival Time (seconds since 12AM)")
     plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_tod", "png"])))
 
+    ## time in system vs origin floor
+    tis_vs_origin = np.zeros((idle_vals.shape[0], 2), dtype=np.float32)
+    tis_vs_origin[:, 1] = idle_vals - queued_vals
+    tis_vs_origin[:, 0] = origin = basic_data[idle_rows, 5].astype(dtype=np.int32)
+
+    # find the average for each origin floor
+    tis_vs_origin = tis_vs_origin[tis_vs_origin[:, 0].argsort()]
+    floor_origin_data = np.split(
+        tis_vs_origin,
+        np.where(np.diff(tis_vs_origin[:, 0]))[0]+1)
+
+    x = []
+    y = []
+    floor_names = ['SB', 'B', 'G', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+    for i in floor_origin_data:
+        x.append(floor_names[int(i[0, 0])])
+        y.append(np.mean(i[:, 1]))
+
+    plt.clf()
+
+    y_pos = np.arange(len(x))
+    rects = plt.bar(y_pos, y, align='center', alpha=0.5)
+    plt.xticks(y_pos, x)
+    plt.ylabel("Time in System (seconds)")
+    plt.xlabel("Origin Floor")
+    autolabel(rects, plt)
+    plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_origin_floor", "png"])))
+
+def autolabel(rects, plot):
+    """
+    Attach a text label above each bar displaying its height,
+    also set the height of the plot
+    """
+    # format y axis
+    plot.ylim([0, max([i.get_height() for i in rects])*1.2])
+
+    # add labels
+    for rect in rects:
+        height = rect.get_height()
+        plot.text(
+            rect.get_x() + rect.get_width()/2.,
+            1.025*height,
+            '%d' % int(height),
+            ha='center', va='bottom')
 
 if __name__ == '__main__':
     run_stats()
