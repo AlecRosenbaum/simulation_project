@@ -354,16 +354,7 @@ class ControlledElevator(Elevator):
 
     def load(self):
         """load_passengers into the elevator"""
-        # if elevator has no capacity, return
-        if not len(self.passengers) < self.capacity:
-            return
-
-        for i in self.curr_floor.queue[:self.rem_cap()]:
-            self._add_passenger(i[1])
-
-            if i[1].destination not in self.destination_queue:
-                self.destination_queue.append(i[1].destination)
-
+        self._load_passengers(self)
 
     def get_next_dest(self):
         """Must be implemented by each algorithm subclass"""
