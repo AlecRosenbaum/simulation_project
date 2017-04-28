@@ -47,7 +47,7 @@ def test_scan_elevator(limit=None):
             break
         settings.FEQ.put_nowait((time, person, person.States.QUEUED))
 
-    # create an elevator
+    # create 6 elevators
     for _ in range(6):
         settings.ELEVATORS.append(elevators.ScanElevator(None, building))
 
@@ -62,11 +62,19 @@ def test_scan_elevator(limit=None):
     sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
 
 
-def test_look_elevator():
+def test_look_elevator(limit=None):
     """method that tests the look elevator"""
+
+    result_dir = "look"
+
+    # create directory if not existing
+    dirs = os.path.join(BASE_DIR, result_dir)
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
+
     # create loggers
-    person_logger = logger.PersonLogger(
-        os.path.join(settings.LOG_DIR, settings.PERSON_LOG_FNAME), remove_old=True)
+    person_logger_path = os.path.join(dirs, settings.LOG_DIR, settings.PERSON_LOG_FNAME)
+    person_logger = logger.PersonLogger(person_logger_path, remove_old=True)
     # create building
     building = Building([
         'SB', 'B', 'G', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',])
@@ -75,23 +83,24 @@ def test_look_elevator():
     arr_gen = ArrivalGenerator(building=building, person_logger=person_logger)
 
     # load saved arrivals or generate new arrivals
-    save_path = os.path.join(settings.ARRIVALS_DIR, "test_arrivals.csv")
+    save_path = os.path.join(settings.ARRIVALS_DIR, "arrivals.csv")
     if not os.path.exists(save_path):
         arr_gen.gen_from_classes(file_path=settings.ARRIVALS_DATA_SET_CSV)
         arr_gen.save(save_path)
     else:
         arr_gen.load(save_path)
 
-    # add first 100 floor arrival to FEQ
+    # add first 100 floor arrivals to FEQ
     cnt = 0
     for time, person in arr_gen.arrival_times:
         cnt += 1
-        if cnt > 100:
+        if limit is not None and cnt > limit:
             break
         settings.FEQ.put_nowait((time, person, person.States.QUEUED))
 
-    # create an elevator
-    settings.ELEVATORS.append(elevators.LookElevator(None, building))
+    # create a few elevators
+    for _ in range(6):
+        settings.ELEVATORS.append(elevators.LookElevator(None, building))
 
     while not settings.FEQ.empty():
         curr_time, obj, state = settings.FEQ.get_nowait()
@@ -101,7 +110,7 @@ def test_look_elevator():
     # commit changes to person_logger
     person_logger.conn.commit()
 
-    sim_stats.run_stats()
+    sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
 
 def test_nearest_elevator():
     """method that tests nearest car first elevator"""
@@ -142,7 +151,7 @@ def test_nearest_elevator():
         settings.CURR_TIME = curr_time
         obj.update_state(state)
 
-         # print system state
+        # print system state
         for i in settings.ELEVATORS:
             print(i)
         for i in building.floor_order:
@@ -269,8 +278,8 @@ def test_sector_time_elevator():
     sim_stats.run_stats()
 
 if __name__ == '__main__':
-    test_scan_elevator()
-    #test_look_elevator()
+    # test_scan_elevator()
+    test_look_elevator()
     #test_nearest_elevator()
     #test_sector_elevator()
     # test_sector_time_elevator()
