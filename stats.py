@@ -14,6 +14,23 @@ BASIC_ORDERED_STMT = """
     ORDER BY EVENT_DAY, PERSON_ID, EVENT_TIME 
 """
 
+QUEUE_LEN_STMT = """
+WITH NUM_DAYS AS (
+    SELECT MAX(EVENT_DAY) + 1 as NUM
+    FROM PERSON_LOGS
+)
+SELECT 
+    EVENT_TIME, 
+    CASE 
+        WHEN STATE == 'States.QUEUED' THEN 1.0/(SELECT NUM FROM NUM_DAYS LIMIT 1)
+        WHEN STATE == 'States.SERVICE' THEN -1.0/(SELECT NUM FROM NUM_DAYS LIMIT 1)
+    ELSE
+        0
+    END AS QUEUE_LEN_CHNG
+FROM PERSON_LOGS
+ORDER BY EVENT_TIME
+"""
+
 
 STATS_DIR = "stats"
 STATS_FILE_NAME = "stats.txt"
@@ -137,6 +154,18 @@ def run_stats(person_log_path=PERSON_LOG_PATH, stats_dir=STATS_DIR):
     plt.xlabel("Origin Floor")
     autolabel(rects, plt)
     plt.savefig(os.path.join(stats_dir, ".".join(["tis_vs_origin_floor", "png"])))
+
+    ## average queue length throughout the day
+    person_cur.execute(QUEUE_LEN_STMT)
+    queue_len_data = person_cur.fetchall()
+
+    x, y = zip(*queue_len_data)
+    y = np.cumsum(np.array(y, dtype=np.float32))
+    plt.clf()
+    plt.plot(x, y, color='r', linestyle='-')
+    plt.ylabel("Queue Length (all floors)")
+    plt.xlabel("Arrival Time (seconds since 12AM)")
+    plt.savefig(os.path.join(stats_dir, ".".join(["avg_queue_len", "png"])))
 
 def autolabel(rects, plot):
     """

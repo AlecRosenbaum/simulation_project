@@ -67,6 +67,7 @@ def test_scan_elevator(limit=None):
         print("Done with", day)
 
     sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
+    print("done simulating", result_dir)
 
 
 def test_look_elevator(limit=None):
@@ -124,6 +125,7 @@ def test_look_elevator(limit=None):
         print("Done with", day)
 
     sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
+    print("done simulating", result_dir)
 
 def test_nearest_elevator(limit=None):
     """method that tests nearest car first elevator"""
@@ -181,6 +183,7 @@ def test_nearest_elevator(limit=None):
         print("Done with", day)
 
     sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
+    print("done simulating", result_dir)
 
 def test_sector_elevator(limit=None):
     """test for testing fixed sector algorithm"""
@@ -202,7 +205,7 @@ def test_sector_elevator(limit=None):
     # generate arrivals
     arr_gen = ArrivalGenerator(building=building, person_logger=person_logger)
 
-    days = ["M" , "Tu", "W", "Th", "F"]
+    days = ["M", "Tu", "W", "Th", "F"]
 
     for day in days:
         # load saved arrivals or generate new arrivals
@@ -244,8 +247,10 @@ def test_sector_elevator(limit=None):
         person_logger.conn.commit()
         print("Done with", day)
 
-    sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
+        settings.CURR_DAY += 1
 
+    sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
+    print("done simulating", result_dir)
 
 def test_sector_time_elevator(limit=None):
     """test for testing fixed sector algorithm"""
@@ -309,13 +314,14 @@ def test_sector_time_elevator(limit=None):
         print("Done with", day)
 
     sim_stats.run_stats(person_log_path=person_logger_path, stats_dir=os.path.join(dirs, "stats"))
+    print("done simulating", result_dir)
 
 if __name__ == '__main__':
     START = timer()
 
-    # test_scan_elevator()
-    # test_look_elevator()
-    # test_nearest_elevator()
+    test_scan_elevator()
+    test_look_elevator()
+    test_nearest_elevator()
     # test_sector_elevator()
     test_sector_time_elevator()
 

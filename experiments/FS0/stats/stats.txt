@@ -1,0 +1,3 @@
+average wait time (seconds): 46.2667
+wait time standard deviation (seconds): 98.9589
+average time in system (seconds): 95.7291
