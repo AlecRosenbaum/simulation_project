@@ -6,7 +6,7 @@
 
 This was programmed in Python 3.6, within an anaconda installation. It makes heavy use of numpy, and matplotlib.
 
-Note: if you are getting errors related to enum.auto(), make sure you ahve Pyhton 3.6 installed. Python 3.5 and earlier don't include this function.
+Note: if you are getting errors related to enum.auto(), make sure you have Python 3.6 installed. Python 3.5 and earlier doesn't include this function.
 
 ## Command to Run Experiments
 
