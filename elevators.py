@@ -613,6 +613,14 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
         if elevator.curr_floor in elevator.destination_queue:
             elevator.destination_queue.remove(elevator.curr_floor)
 
+        elevator.destination_queue = []
+
+        for passenger in elevator.passengers:
+            for arrival in self._building.all_arrivals:
+                if arrival[1] == passenger:
+                    self._building.all_arrivals.remove(arrival)
+                    break
+
         self.update_dests()
 
         # find the closest passenger destination in the same direction
@@ -683,21 +691,15 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                 fos[idx] /= (1+denom)
                 #Add weighting based on time
                 diff = settings.CURR_TIME - arrival[0]
-                print("TESTING", arrival[0])
                 if diff > settings.MAX_WAIT:
-                    print("NEW WEIGHT DUE TO BEING TOO LONG OF A WAIT: ", diff)
-                    diff = (diff**2)/settings.MAX_WAIT
-                    print(diff)
+                    diff = (diff/settings.MAX_WAIT)**2
                     fos[idx] = fos[idx]*diff
-                    print(fos[idx])
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
 
             #add this floor to the destination queue of the best elevator
             self.elevators[max_idx].destination_queue.append(arrival[2])
-
-            self._building.remove(arrival) #we're finished with this arrival
 
     def set_sector(self, elevator_num, up_sector, down_sector):
         """set the sectors of the elevators

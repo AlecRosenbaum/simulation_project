@@ -296,11 +296,11 @@ def test_sector_time_elevator():
         obj.update_state(state)
 
          # print system state
-        for i in settings.ELEVATORS:
-            print(i)
-        for i in building.floor_order:
-            print(i, building.floor[i].queue)
-        print("------------------------------")
+        #for i in settings.ELEVATORS:
+        #    print(i)
+        #for i in building.floor_order:
+        #    print(i, building.floor[i].queue)
+        #print("------------------------------")
 
     # commit changes to person_logger
     person_logger.conn.commit()
@@ -311,5 +311,5 @@ if __name__ == '__main__':
     # test_scan_elevator()
     # test_look_elevator()
     # test_nearest_elevator()
-    test_sector_elevator()
-    # test_sector_time_elevator()
+    # test_sector_elevator()
+    test_sector_time_elevator()
