@@ -29,6 +29,12 @@ class Building:
         """remove the head of the list"""
         self.all_arrivals.remove(person)
 
+    def get_all_arrivals(self):
+        ret = []
+        for i in self.floor.values():
+            ret.extend(i.queue)
+        return ret
+
 class Floor:
     """models each floor of a building
 
