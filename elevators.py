@@ -121,7 +121,6 @@ class Elevator:
 
         # update to new state
         self.state = state
-        # TODO: log state change
 
         # act for current state, decide next state
         if self.state == self.States.STOPPED:
@@ -558,51 +557,6 @@ class FixedSectorsElevatorController(ElevatorController):
                             abs(arr_floor-max(elevator.down_sector)))
 
                 fos[idx] /= (1+denom)
-
-                # min_up_sec = min(elevator.up_sector)
-                # max_up_sec = max(elevator.up_sector)
-                # min_down_sec = min(elevator.down_sector)
-                # max_down_sec = max(elevator.down_sector)
-                # arr_person = arrival[1]
-
-                # if arr_floor.name == "SB":
-                #     arr_floor = -2
-                # elif arr_floor.name == "B":
-                #     arr_floor = -1
-                # elif arr_floor.name == "G":
-                #     arr_floor = 0
-                # else:
-                #     arr_floor = int(arr_floor.name)
-
-                # p_dest = arrival[1].destination
-
-                # if p_dest == "SB":
-                #     p_dest = -2
-                # elif p_dest == "B":
-                #     p_dest = -1
-                # elif p_dest == "G":
-                #     p_dest = 0
-                # else:
-                #     p_dest = int(p_dest)
-
-
-                # # not (arrival floor within the up sector and passenger is going up) or
-                # # (arrival floor within the down sector and going down)
-                # if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec
-                #          and p_dest >= arr_floor)
-                #         or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
-                #             and p_dest <= arr_floor)):
-                #     # if going up and outside of up sector
-                #     if not (arr_floor >= min_up_sec and arr_floor <= max_up_sec
-                #             and p_dest >= arr_floor):
-                #         #if we're going up and we're outisde the up sector
-                #         denom = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
-                #     else:
-                #         #if we're going down and we're outisde the down sector
-                #         denom = min(abs(arr_floor-min_down_sec),
-                #                             abs(arr_floor-max_down_sec))
-                #     if not denom is 0:
-                #         fos[idx] = fos[idx]/denom
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
