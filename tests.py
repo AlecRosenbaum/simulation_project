@@ -213,18 +213,24 @@ def test_sector_elevator():
     controller = elevators.FixedSectorsElevatorController(building)
     controller.spawn_elevators(6, person_logger, building)
     #SET SECTORS
-    controller.elevators[0].up_sector = [0, 1]
-    controller.elevators[0].down_sector = [1, 2, 3]
-    controller.elevators[1].up_sector = [0, 1]
-    controller.elevators[1].down_sector = [1, 2, 3]
-    controller.elevators[2].up_sector = [0, 1]
-    controller.elevators[2].down_sector = [1, 2, 3]
-    controller.elevators[3].up_sector = [0, 1]
-    controller.elevators[3].down_sector = [10, 12]
-    controller.elevators[4].up_sector = list(range(-2, 12)) #-2, -1, 0, ...., 11
-    controller.elevators[4].down_sector = list(range(-1, 13))    #-1, 0, ..., 12
-    controller.elevators[5].up_sector = [-2, -1]
-    controller.elevators[5].down_sector = [0, 1]
+    controller.set_sector(0, ['G', '1'], ['1', '3'])
+    # controller.elevators[0].up_sector = [0, 1]
+    # controller.elevators[0].down_sector = [1, 2, 3]
+    controller.set_sector(1, ['G', '1'], ['1', '3'])
+    # controller.elevators[1].up_sector = [0, 1]
+    # controller.elevators[1].down_sector = [1, 2, 3]
+    controller.set_sector(2, ['G', '1'], ['1', '3'])
+    # controller.elevators[2].up_sector = [0, 1]
+    # controller.elevators[2].down_sector = [1, 2, 3]
+    controller.set_sector(3, ['G', '1'], ['10', '12'])
+    # controller.elevators[3].up_sector = [0, 1]
+    # controller.elevators[3].down_sector = [10, 12]
+    controller.set_sector(4, ['SB', '11'], ['B', '12'])
+    # controller.elevators[4].up_sector = list(range(-2, 12)) #-2, -1, 0, ...., 11
+    # controller.elevators[4].down_sector = list(range(-1, 13))    #-1, 0, ..., 12
+    controller.set_sector(5, ['SB', 'B'], ['G', '1'])
+    # controller.elevators[5].up_sector = [-2, -1]
+    # controller.elevators[5].down_sector = [0, 1]
     settings.ELEVATORS.extend(controller.elevators)
 
     while not settings.FEQ.empty():

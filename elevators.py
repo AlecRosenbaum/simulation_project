@@ -540,49 +540,69 @@ class FixedSectorsElevatorController(ElevatorController):
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
                     fos[idx] -= 1
 
-                min_up_sec = min(elevator.up_sector)
-                max_up_sec = max(elevator.up_sector)
-                min_down_sec = min(elevator.down_sector)
-                max_down_sec = max(elevator.down_sector)
+                # weight the suitability according to how far away it is from the sector
                 arr_floor = arrival[2]
-
-                if arr_floor.name == "SB":
-                    arr_floor = -2
-                elif arr_floor.name == "B":
-                    arr_floor = -1
-                elif arr_floor.name == "G":
-                    arr_floor = 0
-                else:
-                    arr_floor = int(arr_floor.name)
-
-                p_dest = arrival[1].destination.name
-
-                if p_dest == "SB":
-                    p_dest = -2
-                elif p_dest == "B":
-                    p_dest = -1
-                elif p_dest == "G":
-                    p_dest = 0
-                else:
-                    p_dest = int(p_dest)
-
-
-
-                denom = 0
-                if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec
-                         and p_dest >= arr_floor)
-                        or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
-                            and p_dest <= arr_floor)):
-                    if not (arr_floor >= min_up_sec and arr_floor <= max_up_sec
-                            and p_dest >= arr_floor):
-                        #if we're going up and we're outisde the up sector
-                        denom = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
+                if arr_floor.dir_to(arrival[1].destination) == "up":
+                    if arr_floor in elevator.up_sector:
+                        denom = 0
                     else:
-                        #if we're going down and we're outisde the down sector
-                        denom = min(abs(arr_floor-min_down_sec),
-                                            abs(arr_floor-max_down_sec))
-                    if not denom is 0:
-                        fos[idx] = fos[idx]/denom
+                        denom = min(
+                            abs(arr_floor-min(elevator.up_sector)),
+                            abs(arr_floor-max(elevator.up_sector)))
+                else:
+                    if arr_floor in elevator.down_sector:
+                        denom = 0
+                    else:
+                        denom = min(
+                            abs(arr_floor-min(elevator.down_sector)),
+                            abs(arr_floor-max(elevator.down_sector)))
+
+                fos[idx] /= (1+denom)
+
+                # min_up_sec = min(elevator.up_sector)
+                # max_up_sec = max(elevator.up_sector)
+                # min_down_sec = min(elevator.down_sector)
+                # max_down_sec = max(elevator.down_sector)
+                # arr_person = arrival[1]
+
+                # if arr_floor.name == "SB":
+                #     arr_floor = -2
+                # elif arr_floor.name == "B":
+                #     arr_floor = -1
+                # elif arr_floor.name == "G":
+                #     arr_floor = 0
+                # else:
+                #     arr_floor = int(arr_floor.name)
+
+                # p_dest = arrival[1].destination
+
+                # if p_dest == "SB":
+                #     p_dest = -2
+                # elif p_dest == "B":
+                #     p_dest = -1
+                # elif p_dest == "G":
+                #     p_dest = 0
+                # else:
+                #     p_dest = int(p_dest)
+
+
+                # # not (arrival floor within the up sector and passenger is going up) or
+                # # (arrival floor within the down sector and going down)
+                # if not ((arr_floor >= min_up_sec and arr_floor <= max_up_sec
+                #          and p_dest >= arr_floor)
+                #         or (arr_floor >= min_down_sec and arr_floor <= max_down_sec
+                #             and p_dest <= arr_floor)):
+                #     # if going up and outside of up sector
+                #     if not (arr_floor >= min_up_sec and arr_floor <= max_up_sec
+                #             and p_dest >= arr_floor):
+                #         #if we're going up and we're outisde the up sector
+                #         denom = min(abs(arr_floor-min_up_sec), abs(arr_floor-max_up_sec))
+                #     else:
+                #         #if we're going down and we're outisde the down sector
+                #         denom = min(abs(arr_floor-min_down_sec),
+                #                             abs(arr_floor-max_down_sec))
+                #     if not denom is 0:
+                #         fos[idx] = fos[idx]/denom
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
@@ -591,6 +611,25 @@ class FixedSectorsElevatorController(ElevatorController):
             self.elevators[max_idx].destination_queue.append(arrival[2])
 
             self._building.remove(arrival) #we're finished with this arrival
+
+    def set_sector(self, elevator_num, up_sector, down_sector):
+        """set the sectors of the elevators
+
+        Args:
+            elevator_num: which elevator to set the sectors of
+            up_sector: end points of floors included in the sector ex: ['B', '5']
+            down_sector: end points of floors included in the sector ex: ['B', '5']
+        """
+        self.elevators[elevator_num].up_sector = [
+            self._building.floor[self._building.floor_order[i]]
+            for i in range(
+                self._building.floor_order.index(up_sector[0]),
+                self._building.floor_order.index(up_sector[1]))]
+        self.elevators[elevator_num].down_sector = [
+            self._building.floor[self._building.floor_order[i]]
+            for i in range(
+                self._building.floor_order.index(down_sector[0]),
+                self._building.floor_order.index(down_sector[1]))]
 
 
 class FixedSectorsTimePriorityElevatorController(ElevatorController):
