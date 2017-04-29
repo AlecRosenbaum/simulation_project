@@ -14,7 +14,7 @@ All experimental results can be generated using the following command:
 
     python tests.py
 
-The main function will execute all test scripts. If you want go run one in particular, comment out the other function calls at the bottom of test.py.
+The main function will execute all test scripts. If you want go run one in particular, comment out the other function calls at the bottom of tests.py.
 
 # Problem Domain
 
