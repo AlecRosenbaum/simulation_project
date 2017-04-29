@@ -322,7 +322,7 @@ if __name__ == '__main__':
     test_scan_elevator()
     test_look_elevator()
     test_nearest_elevator()
-    # test_sector_elevator()
+    test_sector_elevator()
     test_sector_time_elevator()
 
     END = timer()
