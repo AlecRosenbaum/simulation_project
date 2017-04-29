@@ -30,6 +30,7 @@ class Building:
         self.all_arrivals.remove(person)
 
     def get_all_arrivals(self):
+        """returns a list of all arrivals on all floors"""
         ret = []
         for i in self.floor.values():
             ret.extend(i.queue)
