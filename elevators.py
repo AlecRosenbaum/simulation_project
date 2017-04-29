@@ -529,18 +529,10 @@ class FixedSectorsElevatorController(ElevatorController):
 
         for arrival in self._building.get_all_arrivals():
             for idx, elevator in enumerate(self.elevators):
-                # if idle, use a high fos
-                # if elevator.state == elevator.States.IDLE:
-                #     fos[idx] = len(self._building.floor_order)
-                #     continue
-
                 # FS = 1 if elevator isn't moving towards the call
                 if not elevator.direction == elevator.curr_floor.dir_to(arrival[1].origin):
                     fos[idx] = 1
                     continue
-                # elif elevator.state == elevator.States.IDLE:
-                #     fos[idx] = 1+
-                #     continue
 
                 # base fs score
                 fos[idx] = (len(self._building.floor_order)

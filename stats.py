@@ -47,6 +47,9 @@ def run_stats(person_log_path=PERSON_LOG_PATH, stats_dir=STATS_DIR):
     avg_wait_time = np.mean(np.subtract(service_vals, queued_vals))
     print("average wait time (seconds):", avg_wait_time, file=stats_file)
 
+    avg_wait_time = np.std(np.subtract(service_vals, queued_vals))
+    print("wait time standard deviation (seconds):", avg_wait_time, file=stats_file)
+
     ## determine average time in system
     avg_tis = np.mean(np.subtract(idle_vals, queued_vals))
     print("average time in system (seconds):", avg_tis, file=stats_file)
