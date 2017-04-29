@@ -529,19 +529,25 @@ class FixedSectorsElevatorController(ElevatorController):
 
         for arrival in self._building.get_all_arrivals():
             for idx, elevator in enumerate(self.elevators):
+                # if idle, use a high fos
+                # if elevator.state == elevator.States.IDLE:
+                #     fos[idx] = len(self._building.floor_order)
+                #     continue
+
                 # FS = 1 if elevator isn't moving towards the call
-                if (not elevator.state == elevator.States.IDLE and
-                        not elevator.direction == elevator.curr_floor.dir_to(arrival[1].origin)):
+                if not elevator.direction == elevator.curr_floor.dir_to(arrival[1].origin):
                     fos[idx] = 1
                     continue
+                # elif elevator.state == elevator.States.IDLE:
+                #     fos[idx] = 1+
+                #     continue
 
                 # base fs score
                 fos[idx] = (len(self._building.floor_order)
                             + 1 - abs(arrival[1].origin - elevator.curr_floor))
 
                 # if the person is going in the opposite direction of the elevator, fs - 1
-                if (not elevator.state == elevator.States.IDLE  and
-                        not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination)):
+                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
                     fos[idx] -= 1
 
                 # weight the suitability according to how far away it is from the sector
