@@ -540,7 +540,8 @@ class FixedSectorsElevatorController(ElevatorController):
                             + 1 - abs(arrival[1].origin - elevator.curr_floor))
 
                 # if the person is going in the opposite direction of the elevator, fs - 1
-                if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
+                if (not elevator.state == elevator.States.IDLE  and
+                        not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination)):
                     fos[idx] -= 1
 
                 # weight the suitability according to how far away it is from the sector
