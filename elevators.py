@@ -121,7 +121,6 @@ class Elevator:
 
         # update to new state
         self.state = state
-        # TODO: log state change
 
         # act for current state, decide next state
         if self.state == self.States.STOPPED:
