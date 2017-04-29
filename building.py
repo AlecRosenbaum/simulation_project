@@ -14,20 +14,20 @@ class Building:
         self.floor = {}
         for i in floors:
             self.floor[i] = Floor(self, i)
-        self.all_arrivals = [] #(time, person, floor)
+        # self.all_arrivals = [] #(time, person, floor)
 
-    def push(self, time, person, floor):
-        """add to the queue"""
-        self.all_arrivals.append((time, person, floor))
-        self.all_arrivals.sort(key=lambda x: x[0])
+    # def push(self, time, person, floor):
+    #     """add to the queue"""
+    #     self.all_arrivals.append((time, person, floor))
+    #     self.all_arrivals.sort(key=lambda x: x[0])
 
-    def peak(self):
-        """get first entry"""
-        return self.all_arrivals[0]
+    # def peak(self):
+    #     """get first entry"""
+    #     return self.all_arrivals[0]
 
-    def remove(self, person):
-        """remove the head of the list"""
-        self.all_arrivals.remove(person)
+    # def remove(self, person):
+    #     """remove the head of the list"""
+    #     self.all_arrivals.remove(person)
 
     def get_all_arrivals(self):
         """returns a list of all arrivals on all floors"""
@@ -54,7 +54,7 @@ class Floor:
         """add to the queue"""
         self.queue.append((time, person))
         self.queue.sort(key=lambda x: x[0])
-        self.building.push(time, person, self)
+        # self.building.push(time, person, self)
 
     def remove(self, person):
         """remove instance i from queue (person comparators have been implemented)"""

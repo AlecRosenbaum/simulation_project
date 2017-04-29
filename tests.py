@@ -1,5 +1,6 @@
 """handles all testing for the simulation models"""
 import os
+from timeit import default_timer as timer
 
 import settings
 from person import ArrivalGenerator
@@ -214,23 +215,11 @@ def test_sector_elevator():
     controller.spawn_elevators(6, person_logger, building)
     #SET SECTORS
     controller.set_sector(0, ['G', '1'], ['1', '3'])
-    # controller.elevators[0].up_sector = [0, 1]
-    # controller.elevators[0].down_sector = [1, 2, 3]
     controller.set_sector(1, ['G', '1'], ['1', '3'])
-    # controller.elevators[1].up_sector = [0, 1]
-    # controller.elevators[1].down_sector = [1, 2, 3]
     controller.set_sector(2, ['G', '1'], ['1', '3'])
-    # controller.elevators[2].up_sector = [0, 1]
-    # controller.elevators[2].down_sector = [1, 2, 3]
     controller.set_sector(3, ['G', '1'], ['10', '12'])
-    # controller.elevators[3].up_sector = [0, 1]
-    # controller.elevators[3].down_sector = [10, 12]
     controller.set_sector(4, ['SB', '11'], ['B', '12'])
-    # controller.elevators[4].up_sector = list(range(-2, 12)) #-2, -1, 0, ...., 11
-    # controller.elevators[4].down_sector = list(range(-1, 13))    #-1, 0, ..., 12
     controller.set_sector(5, ['SB', 'B'], ['G', '1'])
-    # controller.elevators[5].up_sector = [-2, -1]
-    # controller.elevators[5].down_sector = [0, 1]
     settings.ELEVATORS.extend(controller.elevators)
 
     while not settings.FEQ.empty():
@@ -238,12 +227,12 @@ def test_sector_elevator():
         settings.CURR_TIME = curr_time
         obj.update_state(state)
 
-         # print system state
-        for i in settings.ELEVATORS:
-            print(i)
-        for i in building.floor_order:
-            print(i, building.floor[i].queue)
-        print("------------------------------")
+        #  # print system state
+        # for i in settings.ELEVATORS:
+        #     print(i)
+        # for i in building.floor_order:
+        #     print(i, building.floor[i].queue)
+        # print("------------------------------")
 
     # commit changes to person_logger
     person_logger.conn.commit()
@@ -308,8 +297,13 @@ def test_sector_time_elevator():
     sim_stats.run_stats()
 
 if __name__ == '__main__':
+    START = timer()
+
     # test_scan_elevator()
     # test_look_elevator()
     # test_nearest_elevator()
-    # test_sector_elevator()
-    test_sector_time_elevator()
+    test_sector_elevator()
+    # test_sector_time_elevator()
+
+    END = timer()
+    print(END - START)

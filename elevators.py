@@ -446,16 +446,16 @@ class NearestCarElevatorController(ElevatorController):
     def update_dests(self):
         """Update the destinations of all elevators based on calculated scores"""
         fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
-        for arrival in self._building.all_arrivals:
+        for arrival in self._building.get_all_arrivals():
             for idx, elevator in enumerate(self.elevators):
                 # FS = 1 if elevator isn't moving towards the call
-                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
+                if not elevator.direction == elevator.curr_floor.dir_to(arrival[1].origin):
                     fos[idx] = 1
                     continue
 
                 # base fs score
                 fos[idx] = (len(self._building.floor_order)
-                            + 1 - abs(arrival[2] - elevator.curr_floor))
+                            + 1 - abs(arrival[1].origin - elevator.curr_floor))
 
                 # if the person is going in the opposite direction of the elevator, fs - 1
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
@@ -465,10 +465,10 @@ class NearestCarElevatorController(ElevatorController):
             max_idx = fos.index(max(fos))
 
             #add this floor to the destination queue of the best elevator
-            if arrival[2] not in self.elevators[max_idx].destination_queue:
-                self.elevators[max_idx].destination_queue.append(arrival[2])
+            if arrival[1].origin not in self.elevators[max_idx].destination_queue:
+                self.elevators[max_idx].destination_queue.append(arrival[1].origin)
 
-            self._building.remove(arrival) #we're finished with this arrival
+            # self._building.remove(arrival) #we're finished with this arrival
 
 class FixedSectorsElevatorController(ElevatorController):
     """This controller implements the Fixed Sector algorithm
@@ -489,12 +489,6 @@ class FixedSectorsElevatorController(ElevatorController):
             elevator.destination_queue.remove(elevator.curr_floor)
 
         elevator.destination_queue = []
-
-        for passenger in elevator.passengers:
-            for arrival in self._building.all_arrivals:
-                if arrival[1] == passenger:
-                    self._building.all_arrivals.remove(arrival)
-                    break
 
         self.update_dests()
 
@@ -533,23 +527,24 @@ class FixedSectorsElevatorController(ElevatorController):
         """Update the destinations of all elevators based on calculated scores"""
         fos = [None for _ in range(len(self.elevators))] #figures of suitability for each elevator
 
-        for arrival in self._building.all_arrivals:
+        for arrival in self._building.get_all_arrivals():
             for idx, elevator in enumerate(self.elevators):
                 # FS = 1 if elevator isn't moving towards the call
-                if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
+                if (not elevator.state == elevator.States.IDLE and
+                        not elevator.direction == elevator.curr_floor.dir_to(arrival[1].origin)):
                     fos[idx] = 1
                     continue
 
                 # base fs score
                 fos[idx] = (len(self._building.floor_order)
-                            + 1 - abs(arrival[2] - elevator.curr_floor))
+                            + 1 - abs(arrival[1].origin - elevator.curr_floor))
 
                 # if the person is going in the opposite direction of the elevator, fs - 1
                 if not elevator.direction == arrival[1].origin.dir_to(arrival[1].destination):
                     fos[idx] -= 1
 
                 # weight the suitability according to how far away it is from the sector
-                arr_floor = arrival[2]
+                arr_floor = arrival[1].origin
                 if arr_floor.dir_to(arrival[1].destination) == "up":
                     if arr_floor in elevator.up_sector:
                         denom = 0
@@ -571,7 +566,7 @@ class FixedSectorsElevatorController(ElevatorController):
             max_idx = fos.index(max(fos))
 
             #add this floor to the destination queue of the best elevator
-            self.elevators[max_idx].destination_queue.append(arrival[2])
+            self.elevators[max_idx].destination_queue.append(arrival[1].origin)
 
     def set_sector(self, elevator_num, up_sector, down_sector):
         """set the sectors of the elevators
