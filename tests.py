@@ -281,9 +281,6 @@ def test_sector_time_elevator():
     # create 6 elevators
     controller = elevators.FixedSectorsTimePriorityElevatorController(building)
     controller.spawn_elevators(6, person_logger, building)
-    # create 6 elevators
-    controller = elevators.FixedSectorsElevatorController(building)
-    controller.spawn_elevators(6, person_logger, building)
     #SET SECTORS
     controller.set_sector(0, ['G', '1'], ['1', '3'])
     controller.set_sector(1, ['G', '1'], ['1', '3'])

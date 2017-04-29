@@ -647,7 +647,7 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                 # FS = 1 if elevator isn't moving towards the call
                 if not elevator.direction == elevator.curr_floor.dir_to(arrival[2]):
                     fos[idx] = 1
-                    continue
+                    #continue
 
                 # base fs score
                 fos[idx] = (len(self._building.floor_order)
@@ -673,12 +673,16 @@ class FixedSectorsTimePriorityElevatorController(ElevatorController):
                         denom = min(
                             abs(arr_floor-min(elevator.down_sector)),
                             abs(arr_floor-max(elevator.down_sector)))
-
                 fos[idx] /= (1+denom)
-
                 #Add weighting based on time
-                diff = (( arrival[0] - settings.CURR_TIME )/ settings.MAX_TIME) ** 2
-                fos[idx] = fos[idx]*diff
+                diff = settings.CURR_TIME - arrival[0]
+                print("TESTING", arrival[0])
+                if diff > settings.MAX_WAIT:
+                    print("NEW WEIGHT DUE TO BEING TOO LONG OF A WAIT: ", diff)
+                    diff = (diff**2)/settings.MAX_WAIT
+                    print(diff)
+                    fos[idx] = fos[idx]*diff
+                    print(fos[idx])
 
             #find the greatest figure of suitability for this arrival
             max_idx = fos.index(max(fos))
